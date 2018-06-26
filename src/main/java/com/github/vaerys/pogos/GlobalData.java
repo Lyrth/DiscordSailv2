@@ -1,14 +1,13 @@
 package com.github.vaerys.pogos;
 
 
-import com.github.vaerys.objects.depreciated.BlackListObject;
-import com.github.vaerys.objects.userlevel.ReminderObject;
+import com.github.vaerys.objects.BlacklistedUserObject;
+import com.github.vaerys.objects.ReminderObject;
 import com.github.vaerys.templates.GlobalFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.stream.Collectors;
 
 /**
  * Created by Vaerys on 10/02/2017.
@@ -17,10 +16,10 @@ public class GlobalData extends GlobalFile {
     public static final String FILE_PATH = "Global_Data.json";
     private double fileVersion = 1.0;
     ArrayList<Long> blockedFromDMS = new ArrayList<>();
-    List<BlackListObject.BlacklistedUserObject> blacklistedUsers = new ArrayList<>();
+    List<BlacklistedUserObject> blacklistedUsers = new ArrayList<>();
     ArrayList<ReminderObject> reminders = new ArrayList<>();
 
-    public List<BlackListObject.BlacklistedUserObject> getBlacklistedUsers() {
+    public List<BlacklistedUserObject> getBlacklistedUsers() {
         return blacklistedUsers;
     }
 
@@ -32,14 +31,14 @@ public class GlobalData extends GlobalFile {
         blockedFromDMS.add(userID);
     }
 
-    public BlackListObject.BlacklistedUserObject blacklistUser(long userID) {
+    public BlacklistedUserObject blacklistUser(long userID) {
         return blacklistUser(userID, 0);
     }
 
-    public BlackListObject.BlacklistedUserObject blacklistUser(long userID, long count) {
-        BlackListObject.BlacklistedUserObject blacklistedUser;
+    public BlacklistedUserObject blacklistUser(long userID, long count) {
+        BlacklistedUserObject blacklistedUser;
 
-        ListIterator<BlackListObject.BlacklistedUserObject> litr = blacklistedUsers.listIterator();
+        ListIterator<BlacklistedUserObject> litr = blacklistedUsers.listIterator();
 
         while (litr.hasNext()) {
             blacklistedUser = litr.next();
@@ -51,17 +50,13 @@ public class GlobalData extends GlobalFile {
         }
 
         count++;
-        blacklistedUser = new BlackListObject.BlacklistedUserObject(userID, count);
+        blacklistedUser = new BlacklistedUserObject(userID, count);
         blacklistedUsers.add(blacklistedUser);
         return blacklistedUser;
     }
 
     public ArrayList<ReminderObject> getReminders() {
         return reminders;
-    }
-
-    public List<ReminderObject> getRemindersUser(long userID) {
-        return reminders.stream().filter(r-> r.getUserID() == userID).collect(Collectors.toList());
     }
 
     public void addReminder(ReminderObject object) {

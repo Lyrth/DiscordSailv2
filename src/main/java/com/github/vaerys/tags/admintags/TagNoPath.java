@@ -2,11 +2,8 @@ package com.github.vaerys.tags.admintags;
 
 import com.github.vaerys.enums.TagType;
 import com.github.vaerys.masterobjects.CommandObject;
-import com.github.vaerys.objects.adminlevel.AdminCCObject;
-import com.github.vaerys.objects.utils.TriVar;
+import com.github.vaerys.objects.AdminCCObject;
 import com.github.vaerys.templates.TagAdminObject;
-
-import java.util.List;
 
 public class TagNoPath extends TagAdminObject {
 
@@ -16,16 +13,8 @@ public class TagNoPath extends TagAdminObject {
 
     @Override
     public String execute(String from, CommandObject command, String args, AdminCCObject cc) {
-        List<TriVar<Long, String, Long>> keys = cc.getKeysUser(command.user.longID);
-        boolean hasKeys = keys.size() != 0;
-        boolean foundKey = false;
-        for (TriVar<Long, String, Long> key : keys) {
-            if (key.getVar2().equalsIgnoreCase(args)) {
-                foundKey = true;
-            }
-        }
-        if (hasKeys && !foundKey) {
-            from = replaceFirstTag(from, getContents(from));
+        if (cc.getKeysUser(command.user.longID).size() != 0) {
+            from = replaceFirstTag(from, contents(from));
         } else {
             from = removeFirstTag(from);
         }
@@ -33,7 +22,7 @@ public class TagNoPath extends TagAdminObject {
     }
 
     @Override
-    public String tagName() {
+    protected String tagName() {
         return "noPath";
     }
 

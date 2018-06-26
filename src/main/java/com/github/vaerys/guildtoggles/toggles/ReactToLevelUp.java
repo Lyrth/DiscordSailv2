@@ -40,6 +40,6 @@ public class ReactToLevelUp extends GuildSetting {
 
     @Override
     public void setup() {
-        commands.add(SetLevelUpReaction.class);
+        commands.add(Command.get(SetLevelUpReaction.class));
     }
 }

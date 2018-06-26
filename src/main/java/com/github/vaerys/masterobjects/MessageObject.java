@@ -6,7 +6,6 @@ import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IReaction;
 import sx.blah.discord.handle.obj.IUser;
 
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -46,7 +45,7 @@ public class MessageObject {
         RequestHandler.deleteMessage(object);
     }
 
-    public ZonedDateTime getTimestampZone() {
+    public ZonedDateTime getTimestamp() {
         return ZonedDateTime.ofInstant(object.getTimestamp(), ZoneOffset.UTC);
     }
 
@@ -58,11 +57,8 @@ public class MessageObject {
         return object.getReactionByEmoji(Utility.getReaction(s));
     }
 
+
     public List<IUser> getMentions() {
         return object.getMentions();
-    }
-
-    public Instant getTimestamp() {
-        return object.getTimestamp();
     }
 }

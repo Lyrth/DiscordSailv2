@@ -16,7 +16,7 @@ public class TagBreak extends TagObject {
     }
 
     @Override
-    public String tagName() {
+    protected String tagName() {
         return "<br>";
     }
 

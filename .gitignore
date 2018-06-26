@@ -196,7 +196,6 @@ Global_Data.json
 *.ttf
 CC templates/
 Storage/
-wiki/
 /modules/
 
 ### Build Artifacts ###

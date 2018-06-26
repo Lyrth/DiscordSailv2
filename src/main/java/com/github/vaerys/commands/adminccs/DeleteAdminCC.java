@@ -40,7 +40,7 @@ public class DeleteAdminCC extends Command {
 
     @Override
     public ChannelSetting channel() {
-        return null;
+        return ChannelSetting.MANAGE_CC;
     }
 
     @Override

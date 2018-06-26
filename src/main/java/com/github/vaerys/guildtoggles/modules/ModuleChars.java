@@ -46,8 +46,7 @@ public class ModuleChars extends GuildModule {
     @Override
     public void setup() {
         channels.add(ChannelSetting.CHARACTER);
-        settings.add(SAILType.ROLE_IS_TOGGLE);
-        settings.add(SAILType.DUNGEON_CHARS);
+        settings.add(ToggleList.getSetting(SAILType.ROLE_IS_TOGGLE));
     }
 
     @Override

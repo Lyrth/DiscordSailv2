@@ -6,7 +6,7 @@ import com.github.vaerys.commands.help.SilentReport;
 import com.github.vaerys.handlers.GuildHandler;
 import com.github.vaerys.main.Utility;
 import com.github.vaerys.masterobjects.GuildObject;
-import com.github.vaerys.objects.adminlevel.ChannelSettingObject;
+import com.github.vaerys.objects.ChannelSettingObject;
 import com.github.vaerys.utilobjects.XEmbedBuilder;
 import com.github.vaerys.templates.Command;
 import sx.blah.discord.handle.obj.IChannel;
@@ -118,7 +118,7 @@ public enum ChannelSetting {
     ART("Art", false, "Where art is enabled to be pinned by users via sail."),
 
     /**
-     * Command.CHANNEL_INFO, false, "Channel to post the getContents of the Info.txt file."
+     * Command.CHANNEL_INFO, false, "Channel to post the contents of the Info.txt file."
      */
     INFO("Info", false, "Channel to post the contents of the Info.txt file."),
 

@@ -3,7 +3,6 @@ package com.github.vaerys.guildtoggles.modules;
 import com.github.vaerys.commands.admin.PropMutePerms;
 import com.github.vaerys.commands.modtools.Mute;
 import com.github.vaerys.enums.SAILType;
-import com.github.vaerys.guildtoggles.toggles.MentionSpam;
 import com.github.vaerys.handlers.GuildHandler;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.pogos.GuildConfig;
@@ -47,12 +46,8 @@ public class ModuleModMuting extends GuildModule {
 
     @Override
     public void setup() {
-        settings.add(SAILType.MUTE_REPEAT_OFFENDER);
-        settings.add(SAILType.RATE_LIMITING);
-        settings.add(SAILType.RATE_LIMITING);
-        settings.add(SAILType.MENTION_SPAM);
-        commands.add(Mute.class);
-        commands.add(PropMutePerms.class);
+        commands.add(Command.get(Mute.class));
+        commands.add(Command.get(PropMutePerms.class));
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.github.vaerys.templates;
 
 import com.github.vaerys.enums.TagType;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class TagAdminObject extends TagAdminSubTagObject {
+public abstract class TagAdminObject extends TagAdminSubTagObject{
 
     public TagAdminObject(int priority, TagType... types) {
         super(priority, types);
@@ -23,7 +23,9 @@ public abstract class TagAdminObject extends TagAdminSubTagObject {
     public boolean cont(String from) {
         if (requiredArgs != 0) {
             try {
-                return StringUtils.substringBetween(from, usageName, suffix) != null;
+                Matcher p = Pattern.compile(prefix + group + suffix).matcher(from);
+                p.find();
+                return p.group(0) != null;
             } catch (Exception e) {
                 return false;
             }
@@ -32,10 +34,12 @@ public abstract class TagAdminObject extends TagAdminSubTagObject {
         }
     }
 
-    public String getContents(String from) {
+    public String contents(String from) {
         if (requiredArgs != 0) {
             try {
-                return StringUtils.substringBetween(from, usageName, suffix);
+                Matcher p = Pattern.compile(prefix + group + suffix).matcher(from);
+                p.find();
+                return p.group(1);
             } catch (Exception e) {
                 return "";
             }
@@ -44,19 +48,4 @@ public abstract class TagAdminObject extends TagAdminSubTagObject {
         }
     }
 
-    public String replaceFirstTag(String from, String withThis) {
-        if (requiredArgs == 0) {
-            return from.replaceFirst(prefix, withThis);
-        } else {
-            return StringUtils.replaceOnce(from, usageName + getContents(from) + suffix, withThis);
-        }
-    }
-
-    public String removeFirstTag(String from) {
-        if (requiredArgs == 0) {
-            return from.replaceFirst(prefix, "");
-        } else {
-            return StringUtils.replaceOnce(from, usageName + getContents(from) + suffix, "");
-        }
-    }
 }

@@ -6,17 +6,14 @@ import com.github.vaerys.handlers.PixelHandler;
 import com.github.vaerys.handlers.RequestHandler;
 import com.github.vaerys.main.Client;
 import com.github.vaerys.main.Globals;
-import com.github.vaerys.main.Utility;
-import com.github.vaerys.objects.userlevel.*;
+import com.github.vaerys.objects.*;
 import com.github.vaerys.templates.Command;
 import com.github.vaerys.utilobjects.XEmbedBuilder;
-import sx.blah.discord.api.internal.DiscordUtils;
 import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.RequestBuffer;
 import sx.blah.discord.util.cache.LongMap;
 
 import java.awt.*;
-import java.time.Instant;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -35,15 +32,12 @@ public class UserObject {
     public String username;
     public List<IRole> roles;
     public Color color;
-    public List<CCommandObject> customCommands = new LinkedList<>();
-    public List<CharacterObject> characters = new LinkedList<>();
-    public List<ServerObject> servers = new LinkedList<>();
-    public List<DailyMessage> dailyMessages = new LinkedList<>();
+    public List<CCommandObject> customCommands;
+    public List<CharacterObject> characters;
+    public List<ServerObject> servers;
+    public List<DailyMessage> dailyMessages;
     public String notAllowed;
     public boolean isPatron;
-    public boolean isBot;
-    public String avatarURL;
-    public Instant creationDate;
     IUser object;
 
 
@@ -64,80 +58,73 @@ public class UserObject {
         init(object, guild, false);
     }
 
-    public static boolean checkForUser(long userID, GuildObject guild) {
-        if (guild.adminCCs.checkForUser(userID)) return true;
-        if (guild.channelData.checkForUser(userID)) return true;
-        if (guild.characters.checkForUser(userID)) return true;
-        if (guild.competition.checkForUser(userID)) return true;
-        if (guild.customCommands.checkForUser(userID)) return true;
-        if (guild.servers.checkForUser(userID)) return true;
-        if (guild.users.checkForUser(userID)) return true;
-        return false;
+    public UserObject(long id, GuildObject content) {
+        this.client = content.client;
+        IUser user = content.getUserByID(id);
+        if (user == null) user = Client.getClient().getUserByID(id);
+        if (user == null) {
+            initNull(id);
+            return;
+        }
+        init(user, content, true);
     }
 
-    public static UserObject getNewUserObject(long userID, GuildObject guild) {
-        if (!checkForUser(userID, guild)) return null;
-        UserObject user = new UserObject(userID, guild);
-        return user;
-    }
-
-    private UserObject(long userID, GuildObject guild) {
-        this.client = guild.client;
-        IUser user = guild.getUserByID(userID);
-        if (user == null) user = Client.getClient().getUserByID(userID);
-        if (user == null) initNull(userID, guild);
-        else init(user, guild, true);
-    }
-
-    private void initNull(long id, GuildObject guild) {
+    private void initNull(long id) {
         longID = id;
         object = null;
-        name = "Unknown User";
-        displayName = name;
-        username = name + "#0000";
+        name = longID + "";
+        displayName = longID + "";
+        username = longID + "";
         color = Color.gray;
         roles = new LinkedList<>();
-        if (guild != null) {
-            loadExtraData(guild);
-        }
+        customCommands = new ArrayList<>();
+        characters = new ArrayList<>();
+        servers = new ArrayList<>();
+        dailyMessages = new ArrayList<>();
         notAllowed = "> I'm sorry " + displayName + ", I'm afraid I can't let you do that.";
         isPatron = Globals.getPatrons().contains(longID);
-        isBot = false;
-        avatarURL = Utility.getDefaultAvatarURL(longID);
-        creationDate = DiscordUtils.getSnowflakeTimeFromID(longID);
     }
 
     private void init(IUser object, GuildObject guild, boolean light) {
         if (object == null) {
-            initNull(-1, guild);
+            initNull(-1);
             return;
         }
         this.object = object;
         this.longID = object.getLongID();
         this.name = object.getName();
         this.username = object.getName() + "#" + object.getDiscriminator();
-        this.isBot = object.isBot();
-        this.avatarURL = object.getAvatarURL();
-        this.creationDate = object.getCreationDate();
         if (guild != null && guild.get() != null) {
             this.displayName = object.getDisplayName(guild.get());
             this.roles = object.getRolesForGuild(guild.get());
             this.color = GuildHandler.getUsersColour(get(), guild.get());
             if (!light) {
-                loadExtraData(guild);
+                customCommands = guild.customCommands.getCommandList().stream().filter(c -> c.getUserID() == longID).collect(Collectors.toList());
+                characters = guild.characters.getCharacters(guild.get()).stream().filter(c -> c.getUserID() == longID).collect(Collectors.toList());
+                servers = guild.servers.getServers().stream().filter(s -> s.getCreatorID() == longID).collect(Collectors.toList());
+                dailyMessages = Globals.getDailyMessages().getMessages().stream().filter(d -> d.getUserID() == longID).collect(Collectors.toList());
+            } else {
+                customCommands = new ArrayList<>();
+                characters = new ArrayList<>();
+                servers = new ArrayList<>();
+                dailyMessages = new ArrayList<>();
             }
         } else {
             this.displayName = name;
             this.roles = new ArrayList<>();
             this.color = Color.white;
+            customCommands = new ArrayList<>();
+            characters = new ArrayList<>();
+            servers = new ArrayList<>();
+            dailyMessages = new ArrayList<>();
         }
-        escapeMentions();
+        escapeMentions(guild);
         notAllowed = "> I'm sorry " + displayName + ", I'm afraid I can't let you do that.";
         isPatron = Globals.getPatrons().contains(longID);
     }
 
-    private void escapeMentions() {
-        Pattern pattern = Pattern.compile("(?i)(@everyone|@here|<@[!|&]?[0-9]*>)");
+    private void escapeMentions(GuildObject guild) {
+        Pattern pattern = Pattern.compile("(?i)@(everyone|here)");
         Matcher nameMatcher = pattern.matcher(name);
         Matcher displayMatcher = pattern.matcher(displayName);
 
@@ -146,6 +133,17 @@ public class UserObject {
             displayName = displayName.replace("@", "@" + Command.spacer);
             username = username.replace("@", "@" + Command.spacer);
         }
+//        while (nameMatcher.find()) {
+//            String beginning = name.substring(0, nameMatcher.start());
+//            String end = name.substring(nameMatcher.start(), name.length());
+//            name = beginning + Command.spacer + end;
+//            username = name + "#" + object.getDiscriminator();
+//        }
+//        while (displayMatcher.find()) {
+//            String beginning = displayName.substring(0, displayMatcher.start() + 1);
+//            String end = displayName.substring(displayMatcher.start() + 1, displayName.length());
+//            displayName = beginning + Command.spacer + end;
+//        }
     }
 
     public UserObject loadExtraData(GuildObject guild) {
@@ -239,6 +237,10 @@ public class UserObject {
         return RequestHandler.sendEmbedMessage(s, builder, getDmChannel());
     }
 
+    public String getAvatarURL() {
+        return object.getAvatarURL();
+    }
+
     public Color getRandomColour() {
         Random random = new Random(longID);
         int red = random.nextInt(255);
@@ -269,14 +271,5 @@ public class UserObject {
 
     public boolean checkIsCreator() {
         return longID == client.creator.longID;
-    }
-
-    public ProfileObject getProfile(CommandObject command) {
-        return getProfile(command.guild);
-    }
-
-    public long getAccountAgeSeconds() {
-        Instant now = Instant.now();
-        return now.getEpochSecond() - creationDate.getEpochSecond();
     }
 }

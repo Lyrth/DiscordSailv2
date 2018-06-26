@@ -8,10 +8,10 @@ import com.github.vaerys.guildtoggles.ToggleList;
 import com.github.vaerys.handlers.FileHandler;
 import com.github.vaerys.handlers.SetupHandler;
 import com.github.vaerys.masterobjects.GuildObject;
-import com.github.vaerys.objects.botlevel.RandomStatusObject;
-import com.github.vaerys.objects.events.TimedEvent;
-import com.github.vaerys.objects.userlevel.DailyMessage;
-import com.github.vaerys.objects.utils.LogObject;
+import com.github.vaerys.objects.DailyMessage;
+import com.github.vaerys.objects.LogObject;
+import com.github.vaerys.objects.RandomStatusObject;
+import com.github.vaerys.objects.TimedEvent;
 import com.github.vaerys.pogos.Config;
 import com.github.vaerys.pogos.DailyMessages;
 import com.github.vaerys.pogos.Events;
@@ -75,8 +75,7 @@ public class Globals {
     private static Events events;
     private static String currentEvent = null;
     public static long lastRateLimitReset = System.currentTimeMillis();
-    private static IUser creator = null;
-    private static List<IUser> contributors = new LinkedList<>();
+
 
     public static void initConfig(IDiscordClient ourClient, Config config, GlobalData newGlobalData) {
         if (newGlobalData != null) {
@@ -388,23 +387,5 @@ public class Globals {
 
     public static List<LogObject> getAllLogs() {
         return allLogs;
-    }
-
-    public static IUser getCreator() {
-        return creator;
-    }
-
-    public static List<IUser> getContributors() {
-        return contributors;
-    }
-
-    public static void loadContributors() {
-        RequestBuffer.request(() -> {
-            IDiscordClient client = Client.getClient();
-            creator = client.fetchUser(153159020528533505L);
-            contributors.add(client.fetchUser(175442602508812288L));
-            contributors.add(client.fetchUser(222041304761237505L));
-            contributors.add(client.fetchUser(368727799189733376L));
-        });
     }
 }
