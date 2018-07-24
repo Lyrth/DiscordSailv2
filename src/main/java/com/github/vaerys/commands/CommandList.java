@@ -73,6 +73,8 @@ public class CommandList {
         add(new SetRuleCode());
         add(new SetRuleCodeReward());
         add(new SetTrustedRoles());
+
+        add(new Clear());
 //        add(new SetupWizard());
         add(new Toggle());
         add(new UpdateInfo());

@@ -406,6 +406,25 @@ public class RequestHandler {
         return deleteMessage(message.get());
     }
 
+    public static RequestBuffer.RequestFuture<Boolean> deleteBulk(IChannel channel, List<IMessage> messages) {
+        return RequestBuffer.request(() -> {
+            try {
+                if (Globals.isReady) {
+                    channel.bulkDelete(messages);
+                } else return false;
+            } catch (RateLimitException e) {
+                throw e;
+            } catch (MissingPermissionsException e) {
+                // Utility.sendStack(e);  // try not to fill logs.
+                return true;
+            } catch (DiscordException e) {
+                // Utility.sendStack(e);
+                return true;
+            }
+            return false;
+        });
+    }
+
     public static RequestBuffer.RequestFuture<Boolean> updateUserNickName(IUser author, IGuild guild, String nickname) {
         return RequestBuffer.request(() -> {
             try {
