@@ -27,11 +27,8 @@ public class Clear extends Command {
 
     @Override
     public String execute(String args, CommandObject command){
-
         SplitFirstObject contents = new SplitFirstObject(args);
         String rest = contents.getRest();
-
-        StringHandler debug = new StringHandler("`DEBUG:`\n");  // FIXME
 
         int n;  // Amount of messages to delete.
         try {
@@ -58,9 +55,7 @@ public class Clear extends Command {
                             channel.getMessageHistoryFrom(
                                     messages.get(messages.size() - 1).getLongID(),2).asArray()[1]
                     );
-                } catch (ArrayIndexOutOfBoundsException ignored){
-                    //debug.append("ArrayIndexOOB caught."); //FIXME
-                }     // when [1] fails, i.e. reached end of channel
+                } catch (ArrayIndexOutOfBoundsException ignored){}  // when [1] fails, i.e. reached end of channel
                 n = messages.size();
                 n--;  // not including the command itself in delete count
             }
@@ -74,8 +69,6 @@ public class Clear extends Command {
             // (?i): case insensitivity
             rest = "(?si)" + rest.replace("\\u005C-","-");
             Pattern pattern = Pattern.compile(rest);
-
-            debug.append("rest: `" + rest + "`\n"); //FIXME
 
             // Iterate over messages
             List<IMessage> toScan = Arrays.asList(channel.getMessageHistory(n * 2).asArray());
@@ -98,9 +91,7 @@ public class Clear extends Command {
                             Arrays.asList(channel.getMessageHistoryFrom(lastID, (n * 2) + 1).asArray())
                     );
                     // toScan.remove(0).getContent();
-                    //debug.append("removed: `" + toScan.remove(0).getContent() + "`\n");  //FIXME
                 } else break;
-                //debug.append("expected vs actual: `" + (n*2) + "` `" + toScan.size() + "`\n");  //FIXME
             }
             n = deleted;
         }
@@ -115,12 +106,8 @@ public class Clear extends Command {
             else break;  // no more 'old' messages
         n = n - olds;    // deleted messages - two-week-old messages
 
-        debug.append("n: `" + n + "`\n");  // FIXME
-
         if (RequestHandler.deleteBulk(channel,messages).get() && n > 0)  // bulk delete failed
             return "> Deleting messages failed. Make sure I have enough permissions.";
-
-
 
         command.message.delete();
 
@@ -129,8 +116,6 @@ public class Clear extends Command {
                 n + " message" + (n==1 ? ".":"s.") +
                 (olds>0 ? " " + olds + " old message" + (olds==1 ? "":"s") + " not deleted." : ""),
                 channel,5);
-
-        // RequestHandler.sendMessage(debug.toString(),channel); // FIXME
 
         return null;
     }
