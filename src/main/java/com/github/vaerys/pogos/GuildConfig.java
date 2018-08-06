@@ -91,6 +91,7 @@ public class GuildConfig extends GlobalFile {
     public long xpDeniedRoleID = -1;
     public long topTenRoleID = -1;
     public int pinLimit = 25;
+    public int likeArtXp = 5;
     public UserSetting defaultLevelMode = UserSetting.SEND_LVLUP_RANK_CHANNEL;
     public String levelUpReaction = "null";
     public String levelUpMessage = "Ding. Gratz on level <level> <user>.";
