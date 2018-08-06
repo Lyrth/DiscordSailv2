@@ -105,12 +105,12 @@ public class Characters extends GlobalFile {
     }
 
     public int maxCharsForUser(UserObject user, GuildObject guild) {
-        int maxChars = 4;
+        int maxChars = 2;
         int rewardCount = PixelHandler.getRewardCount(guild, user.longID);
         maxChars += rewardCount * 2;
-        if (user.isPatron) maxChars += 4;
-        if (GuildHandler.canBypass(user, guild)) maxChars += 4;
-        if (GuildHandler.testForPerms(user, guild, Permissions.MANAGE_MESSAGES)) maxChars += 4;
+        //if (user.isPatron) maxChars += 4;
+        if (GuildHandler.canBypass(user, guild)) maxChars += 2;
+        if (GuildHandler.testForPerms(user, guild, Permissions.MANAGE_MESSAGES)) maxChars += 2;
         return maxChars;
     }
 
