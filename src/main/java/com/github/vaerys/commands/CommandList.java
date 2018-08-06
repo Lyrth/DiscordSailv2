@@ -67,6 +67,7 @@ public class CommandList {
         add(new PurgeBannedData());
         add(new SetAdminRole());
         add(new SetWelcomeMessage());
+        add(new SetLikeArtXp());
         add(new SetMutedRole());
         add(new SetPinLimit());
         add(new SetRateLimit());

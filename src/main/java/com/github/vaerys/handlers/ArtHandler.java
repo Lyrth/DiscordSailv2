@@ -379,7 +379,7 @@ public class ArtHandler {
 
         logger.trace(reacted.displayName + " just gave " + owner.displayName + " some pixels for liking their art.");
         //grant user xp for their nice art.
-        profile.addXP(5, command.guild.config);
+        profile.addXP(command.guild.config.likeArtXp, command.guild.config);
         messageLikes.getUsers().add(reacted.longID);
     }
 }
