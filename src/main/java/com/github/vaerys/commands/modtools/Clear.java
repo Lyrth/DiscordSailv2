@@ -6,6 +6,7 @@ import com.github.vaerys.handlers.RequestHandler;
 import com.github.vaerys.main.Globals;
 import com.github.vaerys.main.Utility;
 import com.github.vaerys.masterobjects.CommandObject;
+import com.github.vaerys.objects.utils.DualVar;
 import com.github.vaerys.objects.utils.SplitFirstObject;
 import com.github.vaerys.templates.Command;
 import sx.blah.discord.handle.obj.IChannel;
@@ -14,6 +15,7 @@ import sx.blah.discord.handle.obj.Permissions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,6 +25,8 @@ import java.util.regex.Pattern;
 public class Clear extends Command {
 
     private static final ScheduledExecutorService selfDestruct = Executors.newSingleThreadScheduledExecutor();
+
+    private static HashMap<Long,DualVar> deleteQueue;  // Can be a List<>, probably.
 
     @Override
     public String execute(String args, CommandObject command){
@@ -36,15 +40,21 @@ public class Clear extends Command {
         } catch (NumberFormatException e) {
             return "> Invalid number value.";
         }
-        if (n > 15) return "> Too many! <TODO>";  // TODO
+        if (n > 100) return "> Cannot delete more than 100 messages.";
+        else if (n > 15) askDelete(rest,n,command);
+        else delete(rest, n, command);
 
+        return null;
+    }
+
+    private static void delete(String rest, int n, CommandObject command){
         IChannel channel = command.channel.get();
 
         List<IMessage> messages = new ArrayList<>();
         if (rest == null || rest.isEmpty()) {  // no rules, only delete n messages
             // asList() returns a fixed-length array, hence the `new ArrayList<>`
             messages = new ArrayList<>(
-                    Arrays.asList(channel.getMessageHistory(n).asArray())
+                    Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,n).asArray())
             );
             n = messages.size();
             // command message was included, get another message
@@ -70,7 +80,7 @@ public class Clear extends Command {
             Pattern pattern = Pattern.compile(rest);
 
             // Iterate over messages
-            List<IMessage> toScan = Arrays.asList(channel.getMessageHistory(n * 2).asArray());
+            List<IMessage> toScan = Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,n*2).asArray());
             long lastID;
             boolean endOfChannel = false;
             int deleted = 0;
@@ -95,7 +105,8 @@ public class Clear extends Command {
             n = deleted;
         }
 
-
+        // TODO: Check time from react, add offset for request propagation time
+        // Actually, D4J bulkDelete also checks for message age, but we need to count messages here
         long current = command.message.get().getTimestamp().getEpochSecond();
         int olds = 0;  // old message (> 2 weeks) counter
 
@@ -105,18 +116,36 @@ public class Clear extends Command {
             else break;  // no more 'old' messages
         n = n - olds;    // deleted messages - two-week-old messages
 
-        if (RequestHandler.deleteBulk(channel,messages).get() && n > 0)  // bulk delete failed
-            return "> Deleting messages failed. Make sure I have enough permissions.";
+        if (RequestHandler.deleteBulk(channel,messages).get() && n > 0) {  // bulk delete failed
+            RequestHandler.sendMessage(
+                    "> Deleting messages failed. Make sure I have enough permissions.", channel);
+            return;
+        }
 
         command.message.delete();
 
         // send notice
         sendSelfDestruct("> Deleted " +
-                n + " message" + (n==1 ? ".":"s.") +
-                (olds>0 ? " " + olds + " old message" + (olds==1 ? "":"s") + " not deleted." : ""),
+                        n + " message" + (n==1 ? ".":"s.") +
+                        (olds>0 ? " " + olds + " old message" + (olds==1 ? "":"s") + " not deleted." : ""),
                 channel,5);
 
-        return null;
+    }
+
+    private static void askDelete(String rest, int n, CommandObject command){
+        IMessage msg = RequestHandler.sendMessage(
+                "> Are you sure you want to delete "+n+" messages?",command).get();
+        msg.addReaction(Utility.getReaction("white_check_mark"));
+        msg.addReaction(Utility.getReaction("x"));
+        command.message.delete();
+        deleteQueue.put(msg.getLongID(), new DualVar<>(rest,n));
+    }
+
+    public static void checkQueue(CommandObject command){
+        if (deleteQueue == null || !deleteQueue.containsKey(command.message.longID)) return;
+        DualVar<String,Integer> c = deleteQueue.get(command.message.longID);
+        deleteQueue.remove(command.message.longID);
+        delete(c.getVar1(),c.getVar2(),command);
     }
 
     private static void sendSelfDestruct(String message, IChannel channel, long delay) {
