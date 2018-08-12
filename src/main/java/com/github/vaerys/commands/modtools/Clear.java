@@ -52,22 +52,29 @@ public class Clear extends Command {
 
         List<IMessage> messages = new ArrayList<>();
         if (rest == null || rest.isEmpty()) {  // no rules, only delete n messages
-            // asList() returns a fixed-length array, hence the `new ArrayList<>`
-            messages = new ArrayList<>(
-                    Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,n).asArray())
-            );
-            n = messages.size();
-            // command message was included, get another message
-            if (n > 0 && command.message.longID == messages.get(0).getLongID()) {
-                try {
-                    messages.add(
-                            channel.getMessageHistoryFrom(
-                                    messages.get(messages.size() - 1).getLongID(),2).asArray()[1]
+            // Iterate over messages
+            List<IMessage> toScan = Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,n+4).asArray());
+            long lastID;
+            boolean endOfChannel = false;
+            int deleted = 0;
+            while (messages.size() < n && !endOfChannel){
+                if (toScan.size() < n+4) endOfChannel = true;
+                for (IMessage msg : toScan)
+                    if (messages.size() < n &&
+                            msg.getLongID() != command.message.longID &&
+                            !msg.isPinned() &&
+                            !messages.contains(msg)) {
+                        messages.add(msg);
+                        deleted++;
+                    }
+                lastID = toScan.get(toScan.size()-1).getLongID();
+                if (messages.size() < n) {
+                    toScan = new ArrayList<>(
+                            Arrays.asList(channel.getMessageHistoryFrom(lastID, (n+4) + 1).asArray())
                     );
-                } catch (ArrayIndexOutOfBoundsException ignored){}  // when [1] fails, i.e. reached end of channel
-                n = messages.size();
-                n--;  // not including the command itself in delete count
+                } else break;
             }
+            n = deleted;
         } else {  // There are rules to check
             rest = Utility.escapeRegex(rest);
             if (rest.length() > 1 && !rest.equals("--")) {
@@ -87,9 +94,10 @@ public class Clear extends Command {
             while (messages.size() < n && !endOfChannel){
                 if (toScan.size() < n*2) endOfChannel = true;
                 for (IMessage msg : toScan)
-                    if (pattern.matcher(msg.getContent()).matches() &&
-                            messages.size() < n &&
+                    if (messages.size() < n &&
                             msg.getLongID() != command.message.longID &&
+                            !msg.isPinned() &&
+                            pattern.matcher(msg.getContent()).matches() &&
                             !messages.contains(msg)) {
                         messages.add(msg);
                         deleted++;
@@ -99,7 +107,6 @@ public class Clear extends Command {
                     toScan = new ArrayList<>(
                             Arrays.asList(channel.getMessageHistoryFrom(lastID, (n * 2) + 1).asArray())
                     );
-                    // toScan.remove(0).getContent();
                 } else break;
             }
             n = deleted;
@@ -192,7 +199,7 @@ public class Clear extends Command {
 
     @Override
     protected Permissions[] perms() {
-        return new Permissions[]{Permissions.MANAGE_MESSAGES, Permissions.MENTION_EVERYONE};
+        return new Permissions[]{Permissions.MANAGE_MESSAGES};
     }
 
     @Override
