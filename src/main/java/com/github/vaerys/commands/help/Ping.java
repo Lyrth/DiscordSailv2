@@ -2,8 +2,10 @@ package com.github.vaerys.commands.help;
 
 import com.github.vaerys.enums.ChannelSetting;
 import com.github.vaerys.enums.SAILType;
+import com.github.vaerys.handlers.RequestHandler;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.templates.Command;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Permissions;
 
 import java.text.NumberFormat;
@@ -15,7 +17,13 @@ public class Ping extends Command {
 
     @Override
     public String execute(String args, CommandObject command) {
-        return "Pong! " + NumberFormat.getInstance().format(command.client.get().getShards().get(0).getResponseTime()) + "ms";
+        IMessage tmpMsg = RequestHandler.sendMessage("Pinging...",command).get();
+        tmpMsg.edit(String.format(
+                "Pong!\nAPI: %dms\nWebsocket: %dms",
+                tmpMsg.getTimestamp().toEpochMilli() - command.message.getTimestamp().toEpochMilli(),
+                command.client.get().getShards().get(0).getResponseTime()
+        ));
+        return null;
     }
 
     @Override
