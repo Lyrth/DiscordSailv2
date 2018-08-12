@@ -1,5 +1,6 @@
 package com.github.vaerys.main;
 
+import com.github.vaerys.commands.modtools.Clear;
 import com.github.vaerys.handlers.*;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.masterobjects.GuildObject;
@@ -160,6 +161,7 @@ public class AnnotationListener {
             return;
         }
         ReactionEmoji x = Utility.getReaction("x");
+        ReactionEmoji check = Utility.getReaction("white_check_mark");
         ReactionEmoji pin = Utility.getReaction(Constants.EMOJI_ADD_PIN);
         ReactionEmoji thumbsUp = Utility.getReaction(Constants.EMOJI_THUMBS_UP);
         ReactionEmoji thumbsDown = Utility.getReaction(Constants.EMOJI_THUMBS_DOWN);
@@ -181,6 +183,9 @@ public class AnnotationListener {
         if (!event.getChannel().isPrivate() && emoji.isUnicode()) {
             //if is x and can bypass
             if (emoji.equals(remove)) ArtHandler.unPin(object);
+            if (emoji.equals(check) && GuildHandler.testForPerms(object, Permissions.MANAGE_MESSAGES)
+                    && object.client.bot.longID == object.user.longID)
+                Clear.checkQueue(object);
             if (emoji.equals(x) && GuildHandler.testForPerms(object, Permissions.MANAGE_MESSAGES)
                     && object.client.bot.longID == object.user.longID)
                 RequestHandler.deleteMessage(object.message);
