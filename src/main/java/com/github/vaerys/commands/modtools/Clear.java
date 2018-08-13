@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Clear extends Command {
 
@@ -79,7 +80,6 @@ public class Clear extends Command {
             for (IMessage msg : toScan)
                 if (messages.size() < n &&
                         msg.getLongID() != command.message.longID &&
-                        !msg.isPinned() &&
                         (pattern == null || pattern.matcher(msg.getContent()).matches()) &&
                         !messages.contains(msg)) {
                     messages.add(msg);
@@ -98,12 +98,16 @@ public class Clear extends Command {
         // Actually, D4J bulkDelete also checks for message age, but we need to count messages here
         long current = command.message.get().getTimestamp().getEpochSecond();
         int olds = 0;  // old message (> 2 weeks) counter
+        int pins = 0;  // pinned messages counter
 
-        for (int i = messages.size(); i > 0; i--)
+        for (int i = messages.size(); i > 0; i--) {
+            if (messages.get(i-1).isPinned())  // message is pinned
+                pins++;
             if (current - messages.get(i-1).getTimestamp().getEpochSecond() > 1209600)  // older than 2 weeks
                 olds++;
-            else break;  // no more 'old' messages
-        n = n - olds;    // deleted messages - two-week-old messages
+        }
+        messages = messages.stream().filter(m -> !m.isPinned()).collect(Collectors.toList());
+        n = n - olds - pins;    // deleted messages - two-week-old messages - pinned messages
 
         if (RequestHandler.deleteBulk(channel,messages).get() && n > 0) {  // bulk delete failed
             RequestHandler.sendMessage(
@@ -115,9 +119,12 @@ public class Clear extends Command {
 
         // send notice
         sendSelfDestruct("> Deleted " +
-                        n + " message" + (n==1 ? ".":"s.") +
-                        (olds>0 ? " " + olds + " old message" + (olds==1 ? "":"s") + " not deleted." : ""),
-                channel,5);
+                        n + " message" + (n==1 ? ".":"s. ") +
+                        (pins>0 ? pins + " pinned":"") +
+                        (pins>0 && olds>0 ? ", ":"") +
+                        (olds>0 ? olds + " old":"")+
+                        (pins>0 || olds>0 ? " message" + ((olds+pins)==1 ? "":"s") + " not deleted." : ""),
+                channel,5 + (pins>0 ? 2:0) + (olds>0 ? 2:0));
 
     }
 
