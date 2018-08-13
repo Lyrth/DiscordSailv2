@@ -26,7 +26,7 @@ public class Clear extends Command {
 
     private static final ScheduledExecutorService selfDestruct = Executors.newSingleThreadScheduledExecutor();
 
-    private static HashMap<Long,DualVar> deleteQueue;  // Can be a List<>, probably.
+    private static HashMap<Long,DualVar> deleteQueue = new HashMap<>();  // Can be a List<>, probably.
 
     @Override
     public String execute(String args, CommandObject command){
