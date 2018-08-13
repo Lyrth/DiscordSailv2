@@ -19,7 +19,7 @@ public class Ping extends Command {
     public String execute(String args, CommandObject command) {
         IMessage tmpMsg = RequestHandler.sendMessage("Pinging...",command).get();
         tmpMsg.edit(String.format(
-                "Pong!\nAPI: %dms\nWebsocket: %dms",
+                "Pong! Response time: **%dms**, Websocket: **%dms**",
                 tmpMsg.getTimestamp().toEpochMilli() - command.message.getTimestamp().toEpochMilli(),
                 command.client.get().getShards().get(0).getResponseTime()
         ));
