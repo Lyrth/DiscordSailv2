@@ -50,31 +50,11 @@ public class Clear extends Command {
     private static void delete(String rest, int n, CommandObject command){
         IChannel channel = command.channel.get();
 
-        List<IMessage> messages = new ArrayList<>();
+        Pattern pattern;
+        int nn;
         if (rest == null || rest.isEmpty()) {  // no rules, only delete n messages
-            // Iterate over messages
-            List<IMessage> toScan = Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,n+4).asArray());
-            long lastID;
-            boolean endOfChannel = false;
-            int deleted = 0;
-            while (messages.size() < n && !endOfChannel){
-                if (toScan.size() < n+4) endOfChannel = true;
-                for (IMessage msg : toScan)
-                    if (messages.size() < n &&
-                            msg.getLongID() != command.message.longID &&
-                            !msg.isPinned() &&
-                            !messages.contains(msg)) {
-                        messages.add(msg);
-                        deleted++;
-                    }
-                lastID = toScan.get(toScan.size()-1).getLongID();
-                if (messages.size() < n) {
-                    toScan = new ArrayList<>(
-                            Arrays.asList(channel.getMessageHistoryFrom(lastID, (n+4) + 1).asArray())
-                    );
-                } else break;
-            }
-            n = deleted;
+            pattern = null;
+            nn = n + 4;  // pinned message
         } else {  // There are rules to check
             rest = Utility.escapeRegex(rest);
             if (rest.length() > 1 && !rest.equals("--")) {
@@ -84,33 +64,35 @@ public class Clear extends Command {
             // (?s): . matches everything including newlines
             // (?i): case insensitivity
             rest = "(?si)" + rest.replace("\\u005C-","-");
-            Pattern pattern = Pattern.compile(rest);
-
-            // Iterate over messages
-            List<IMessage> toScan = Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,n*2).asArray());
-            long lastID;
-            boolean endOfChannel = false;
-            int deleted = 0;
-            while (messages.size() < n && !endOfChannel){
-                if (toScan.size() < n*2) endOfChannel = true;
-                for (IMessage msg : toScan)
-                    if (messages.size() < n &&
-                            msg.getLongID() != command.message.longID &&
-                            !msg.isPinned() &&
-                            pattern.matcher(msg.getContent()).matches() &&
-                            !messages.contains(msg)) {
-                        messages.add(msg);
-                        deleted++;
-                    }
-                lastID = toScan.get(toScan.size()-1).getLongID();
-                if (messages.size() < n) {
-                    toScan = new ArrayList<>(
-                            Arrays.asList(channel.getMessageHistoryFrom(lastID, (n * 2) + 1).asArray())
-                    );
-                } else break;
-            }
-            n = deleted;
+            pattern = Pattern.compile(rest);
+            nn = n * 2;
         }
+
+        // Iterate over messages
+        List<IMessage> toScan = Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,nn).asArray());
+        List<IMessage> messages = new ArrayList<>();
+        long lastID;
+        boolean endOfChannel = false;
+        int deleted = 0;
+        while (messages.size() < n && !endOfChannel){
+            if (toScan.size() < nn) endOfChannel = true;
+            for (IMessage msg : toScan)
+                if (messages.size() < n &&
+                        msg.getLongID() != command.message.longID &&
+                        !msg.isPinned() &&
+                        (pattern == null || pattern.matcher(msg.getContent()).matches()) &&
+                        !messages.contains(msg)) {
+                    messages.add(msg);
+                    deleted++;
+                }
+            lastID = toScan.get(toScan.size()-1).getLongID();
+            if (messages.size() < n) {
+                toScan = new ArrayList<>(
+                        Arrays.asList(channel.getMessageHistoryFrom(lastID, nn + 1).asArray())
+                );
+            } else break;
+        }
+        n = deleted;
 
         // TODO: Check time from react, add offset for request propagation time
         // Actually, D4J bulkDelete also checks for message age, but we need to count messages here
