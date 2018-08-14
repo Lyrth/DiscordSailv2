@@ -14,11 +14,21 @@ public class TagMath extends TagObject {
     public String execute(String from, CommandObject command, String args) {
         String contents = getContents(from);
         try {
-            from = replaceFirstTag(from, "" + String.format("%.0f", evalMath(contents)));
+            from = replaceFirstTag(from, "" + fmt(evalMath(contents)));
         } catch (RuntimeException e) {
             from = replaceFirstTag(from, error);
         }
         return from;
+    }
+
+    // Source: https://stackoverflow.com/a/14126736
+    // Nicely formats doubles.
+    private static String fmt(double d)
+    {
+        if(d == (long) d)
+            return String.format("%d",(long)d);
+        else
+            return String.format("%s",d);
     }
 
     // Source: https://stackoverflow.com/a/26227947
