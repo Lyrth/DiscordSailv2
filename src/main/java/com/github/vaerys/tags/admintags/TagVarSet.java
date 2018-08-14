@@ -80,18 +80,6 @@ public class TagVarSet extends TagAdminSubTagObject {
     }
 
     @Override
-    public String prefix() {
-        prefix = "<" + name + ":([\\w| ]+?)>\\(";   // TOO HACKY D:<
-        return prefix;
-    }
-
-    @Override
-    public String suffix() {
-        suffix = "\\)";     //THIS TOO D:<<
-        return suffix;
-    }
-
-    @Override
     protected int argsRequired() {
         return 1;
     }
