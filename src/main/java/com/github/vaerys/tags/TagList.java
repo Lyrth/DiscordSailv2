@@ -50,6 +50,9 @@ public class TagList {
         //single args
         add(new TagSingleArgs(20, TagType.CC));
         add(new TagLimitTry(21, TagType.ADMIN_CC));
+        //var things
+        add(new TagVarStore(22, TagType.ADMIN_CC));
+        add(new TagVarGet(23, TagType.ADMIN_CC));
         //random tags (part 1)
         add(new TagRandom(30, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         add(new TagReplaceRandom(31, TagType.CC, TagType.JOIN_MESSAGES));
@@ -72,6 +75,8 @@ public class TagList {
         add(new TagRandNum(60, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         add(new TagRandEmote(61, TagType.CC, TagType.DAILY, TagType.LEVEL, TagType.JOIN_MESSAGES));
         add(new TagReplaceError(62, TagType.CC));
+        //another var thing
+        add(new TagVarSet(63, TagType.ADMIN_CC));
         //path
         add(new TagPath(65, TagType.ADMIN_CC));
         add(new TagNoPath(66, TagType.ADMIN_CC));
