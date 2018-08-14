@@ -39,14 +39,19 @@ public class TagRepeat extends TagAdminSubTagObject {
 
     @Override
     public String prefix() {
-        prefix = "<" + name + ":([\\w| ]+?)>\\(";   // h
+        prefix = "<" + tagName() + ":([\\w| ]+?)>\\(";   // h
         return prefix;
     }
 
     @Override
     public String suffix() {
-        suffix = "\\)";     // hh
+        suffix = ")";     // hh
         return suffix;
+    }
+
+    @Override
+    public String getSubPrefix(String from) {
+        return "<" + tagName() + ":" + getSubTag(from) + ">(";
     }
 
     @Override
@@ -57,6 +62,12 @@ public class TagRepeat extends TagAdminSubTagObject {
     @Override
     protected String usage() {
         return "Text";
+    }
+
+    @Override
+    public String getUsage() {
+        usageName = "<" + tagName() + ":" + subTagUsage() + ">" + (requiredArgs != 0 ? "(" : "");
+        return requiredArgs != 0 ? usageName + usage + suffix : usageName;
     }
 
     @Override
