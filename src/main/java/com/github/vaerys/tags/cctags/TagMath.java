@@ -14,7 +14,7 @@ public class TagMath extends TagObject {
     public String execute(String from, CommandObject command, String args) {
         String contents = getContents(from);
         try {
-            from = replaceFirstTag(from, "" + evalMath(contents));
+            from = replaceFirstTag(from, "" + String.format("%.0f", evalMath(contents)));
         } catch (RuntimeException e) {
             from = replaceFirstTag(from, error);
         }
