@@ -71,6 +71,8 @@ public class TagList {
         add(new TagReplaceSpecial(55, TagType.CC));
         add(new TagRegex(56, TagType.CC));
         add(new TagShuffleReplace(57, TagType.CC));
+        //repeat
+        add(new TagRepeat(58, TagType.CC));
         //random tags (part 2)
         add(new TagRandNum(60, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         add(new TagRandEmote(61, TagType.CC, TagType.DAILY, TagType.LEVEL, TagType.JOIN_MESSAGES));
