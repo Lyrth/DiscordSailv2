@@ -77,7 +77,8 @@ public class TagList {
         add(new TagRandNum(60, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         add(new TagRandEmote(61, TagType.CC, TagType.DAILY, TagType.LEVEL, TagType.JOIN_MESSAGES));
         //Math
-        add(new TagMath(63, TagType.CC));
+        add(new TagMath(62, TagType.CC));
+        add(new TagVerboseMath(63, TagType.CC));
         //another var thing
         add(new TagVarSet(64, TagType.ADMIN_CC));
         //path
