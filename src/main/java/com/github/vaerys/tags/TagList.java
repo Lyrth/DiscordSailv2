@@ -91,7 +91,7 @@ public class TagList {
         add(new TagListKeys(73, TagType.ADMIN_CC));
         add(new TagAddTry(74, TagType.ADMIN_CC));
         // Error handler
-        add(new TagReplaceError(62, TagType.CC));
+        add(new TagReplaceError(75, TagType.CC));
         //empty tag
         add(new TagEmpty(79, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         //xp/roles/alerts
