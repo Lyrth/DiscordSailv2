@@ -74,7 +74,6 @@ public class TagList {
         //random tags (part 2)
         add(new TagRandNum(60, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         add(new TagRandEmote(61, TagType.CC, TagType.DAILY, TagType.LEVEL, TagType.JOIN_MESSAGES));
-        add(new TagReplaceError(62, TagType.CC));
         //Math
         add(new TagMath(63, TagType.CC));
         //another var thing
@@ -91,6 +90,8 @@ public class TagList {
         add(new TagGrantPath(72, TagType.ADMIN_CC));
         add(new TagListKeys(73, TagType.ADMIN_CC));
         add(new TagAddTry(74, TagType.ADMIN_CC));
+        // Error handler
+        add(new TagReplaceError(62, TagType.CC));
         //empty tag
         add(new TagEmpty(79, TagType.CC, TagType.DAILY, TagType.JOIN_MESSAGES));
         //xp/roles/alerts
