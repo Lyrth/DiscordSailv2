@@ -22,9 +22,10 @@ public class TagVerboseMath extends TagObject {
         return from;
     }
 
-    // Cleans equation from spaces.
+    // Cleans equation from spaces and stray +0s.
     private static String clean(String str){
-        return str.replaceAll(" ","");
+        return str.replaceAll(" ","")
+                .replaceAll("\\+0(\\+|-|\\*|/|$)","$1");
     }
 
     // Source: https://stackoverflow.com/a/14126736
