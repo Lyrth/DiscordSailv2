@@ -351,6 +351,8 @@ public class ArtHandler {
         if (!command.guild.config.xpGain) return;
         //exit if liking art is off
         if (!command.guild.config.likeArt) return;
+        // no owner, it happens...
+        if (owner == null || owner.get() == null) return;
         //exit if message owner is a bot
         if (owner.get().isBot()) return;
         //exit if there is no art channel
