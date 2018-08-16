@@ -12,6 +12,7 @@ import com.github.vaerys.templates.Command;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Permissions;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,9 +132,9 @@ public class Clear extends Command {
     private static void askDelete(String rest, int n, CommandObject command){
         IMessage msg = RequestHandler.sendMessage(
                 "> Are you sure you want to delete "+n+" messages?",command).get();
-        msg.addReaction(Utility.getReaction("white_check_mark"));
-        msg.addReaction(Utility.getReaction("x"));
-        command.message.delete();
+        RequestBuffer.request(() -> msg.addReaction(Utility.getReaction("white_check_mark")));
+        RequestBuffer.request(() -> msg.addReaction(Utility.getReaction("x")));
+        RequestBuffer.request(() -> command.message.delete());
         deleteQueue.put(msg.getLongID(), new DualVar<>(rest,n));
     }
 
