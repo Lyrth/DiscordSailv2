@@ -1,5 +1,6 @@
 package com.github.vaerys.enums;
 
+import com.github.vaerys.main.Main;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.commands.help.Report;
 import com.github.vaerys.commands.help.SilentReport;
@@ -9,6 +10,7 @@ import com.github.vaerys.masterobjects.GuildObject;
 import com.github.vaerys.objects.adminlevel.ChannelSettingObject;
 import com.github.vaerys.utilobjects.XEmbedBuilder;
 import com.github.vaerys.templates.Command;
+import sx.blah.discord.Discord4J;
 import sx.blah.discord.handle.obj.IChannel;
 
 import java.util.ArrayList;
@@ -294,12 +296,16 @@ public enum ChannelSetting {
         if (isSetting) {
             if (channel.getChannelIDs().isEmpty() || !channel.getChannelIDs().contains(channelID)) {
                 channel.getChannelIDs().add(channelID);
-                return "> " + guild.getChannelByID(channelID).mention() + ". Channel setting: **" + name + "** added.";
+                String channelMention = guild.getChannelByID(channelID)!=null ?    // cache workaround
+                        guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
+                return "> " + channelMention + ". Channel setting: **" + name + "** added.";
             } else {
                 for (int i = 0; i < channel.getChannelIDs().size(); i++) {
                     if (channelID == channel.getChannelIDs().get(i)) {
                         channel.getChannelIDs().remove(i);
-                        return "> " + guild.getChannelByID(channelID).mention() + ". Channel setting: **" + name + "** removed.";
+                        String channelMention = guild.getChannelByID(channelID)!=null ?
+                                guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
+                        return "> " + channelMention + ". Channel setting: **" + name + "** removed.";
                     }
                 }
             }
@@ -310,10 +316,14 @@ public enum ChannelSetting {
                 } else {
                     channel.getChannelIDs().set(0, channelID);
                 }
-                return "> " + guild.getChannelByID(channelID).mention() + " is now the Server's **" + name + "** channel.";
+                String channelMention = guild.getChannelByID(channelID)!=null ?
+                        guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
+                return "> " + channelMention + " is now the Server's **" + name + "** channel.";
             } else {
                 channel.getChannelIDs().remove(0);
-                return "> " + guild.getChannelByID(channelID).mention() + " is no longer the Server's **" + name + "** channel.";
+                String channelMention = guild.getChannelByID(channelID)!=null ?
+                        guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
+                return "> " + channelMention + " is no longer the Server's **" + name + "** channel.";
             }
         }
         return error;
