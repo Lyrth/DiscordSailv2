@@ -1,6 +1,5 @@
 package com.github.vaerys.enums;
 
-import com.github.vaerys.main.Main;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.commands.help.Report;
 import com.github.vaerys.commands.help.SilentReport;
@@ -10,7 +9,6 @@ import com.github.vaerys.masterobjects.GuildObject;
 import com.github.vaerys.objects.adminlevel.ChannelSettingObject;
 import com.github.vaerys.utilobjects.XEmbedBuilder;
 import com.github.vaerys.templates.Command;
-import sx.blah.discord.Discord4J;
 import sx.blah.discord.handle.obj.IChannel;
 
 import java.util.ArrayList;
