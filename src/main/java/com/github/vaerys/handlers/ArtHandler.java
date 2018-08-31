@@ -65,6 +65,8 @@ public class ArtHandler {
         if (!command.guild.config.artPinning) return;
         //exit if the art is already pinned
         if (command.message.get().isPinned()) return;
+
+        if (owner == null || owner.get() == null) return;
         //exit if message owner is a bot
         if (owner.get().isBot()) return;
         //exit if message has already been unpinned.
