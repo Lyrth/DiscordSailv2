@@ -70,13 +70,18 @@ public class Clear extends Command {
             nn = n * 2;
         }
 
+        long current = command.message.get().getTimestamp().getEpochSecond();
+        int olds = 0;  // old message (> 2 weeks) counter
+        int pins = 0;  // pinned messages counter
+
         // Iterate over messages
         List<IMessage> toScan = Arrays.asList(channel.getMessageHistoryFrom(command.message.longID,nn).asArray());
         List<IMessage> messages = new ArrayList<>();
         long lastID;
-        boolean endOfChannel = false;
+        boolean endOfChannel = false,
+                reachedOld = false;
         int deleted = 0;
-        while (messages.size() < n && !endOfChannel){
+        while (messages.size() < n){
             if (toScan.size() < nn) endOfChannel = true;
             for (IMessage msg : toScan)
                 if (messages.size() < n &&
@@ -85,21 +90,17 @@ public class Clear extends Command {
                         !messages.contains(msg)) {
                     messages.add(msg);
                     deleted++;
+                    if (current - msg.getTimestamp().getEpochSecond() > 1209600)
+                        reachedOld = true;
                 }
             lastID = toScan.get(toScan.size()-1).getLongID();
-            if (messages.size() < n) {
+            if (messages.size() < n && !endOfChannel && !reachedOld) {
                 toScan = new ArrayList<>(
                         Arrays.asList(channel.getMessageHistoryFrom(lastID, nn + 1).asArray())
                 );
             } else break;
         }
         n = deleted;
-
-        // TODO: Check time from react, add offset for request propagation time
-        // Actually, D4J bulkDelete also checks for message age, but we need to count messages here
-        long current = command.message.get().getTimestamp().getEpochSecond();
-        int olds = 0;  // old message (> 2 weeks) counter
-        int pins = 0;  // pinned messages counter
 
         for (int i = messages.size(); i > 0; i--) {
             if (messages.get(i-1).isPinned())  // message is pinned
@@ -121,11 +122,9 @@ public class Clear extends Command {
         // send notice
         sendSelfDestruct("> Deleted " +
                         n + " message" + (n==1 ? ".":"s. ") +
-                        (pins>0 ? pins + " pinned":"") +
-                        (pins>0 && olds>0 ? ", ":"") +
-                        (olds>0 ? olds + " old":"")+
-                        (pins>0 || olds>0 ? " message" + ((olds+pins)==1 ? "":"s") + " not deleted." : ""),
-                channel,5 + (pins>0 ? 2:0) + (olds>0 ? 2:0));
+                        (pins>0 ? pins + " pinned message" + (pins==1 ? "":"s") + " not deleted. ":"") +
+                        (reachedOld ? "Cannot delete past two-week-old messages.":""),
+                channel,5 + (pins>0 ? 1:0) + (reachedOld ? 1:0));
 
     }
 
