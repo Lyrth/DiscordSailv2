@@ -138,11 +138,11 @@ public class Clear extends Command {
         deleteQueue.put(msg.getLongID(), new DualVar<>(rest,n));
     }
 
-    public static void checkQueue(CommandObject command){
+    public static void checkQueue(CommandObject command, boolean doDelete){
         if (deleteQueue == null || !deleteQueue.containsKey(command.message.longID)) return;
         DualVar<String,Integer> c = deleteQueue.get(command.message.longID);
         deleteQueue.remove(command.message.longID);
-        delete(c.getVar1(),c.getVar2(),command);
+        if (doDelete) delete(c.getVar1(),c.getVar2(),command);
     }
 
     private static void sendSelfDestruct(String message, IChannel channel, long delay) {

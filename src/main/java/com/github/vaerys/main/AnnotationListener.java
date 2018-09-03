@@ -185,10 +185,12 @@ public class AnnotationListener {
             if (emoji.equals(remove)) ArtHandler.unPin(object);
             if (emoji.equals(check) && GuildHandler.testForPerms(object, Permissions.MANAGE_MESSAGES)
                     && object.client.bot.longID == object.user.longID)
-                Clear.checkQueue(object);
+                Clear.checkQueue(object,true);
             if (emoji.equals(x) && GuildHandler.testForPerms(object, Permissions.MANAGE_MESSAGES)
-                    && object.client.bot.longID == object.user.longID)
+                    && object.client.bot.longID == object.user.longID) {
+                Clear.checkQueue(object,false);
                 RequestHandler.deleteMessage(object.message);
+            }
             //if is pushpin
             if (emoji.equals(pin)) ArtHandler.pinMessage(object, pinner, owner);
 
