@@ -7,6 +7,7 @@ import com.github.vaerys.main.Utility;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.masterobjects.GuildObject;
 import com.github.vaerys.masterobjects.UserObject;
+import com.github.vaerys.utilobjects.XEmbedBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.internal.DiscordUtils;
@@ -21,20 +22,20 @@ import sx.blah.discord.handle.impl.events.guild.member.UserBanEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserRoleUpdateEvent;
 import sx.blah.discord.handle.impl.obj.VoiceChannel;
 import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.util.DiscordException;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LoggingHandler {
 
     private final static Logger logger = LoggerFactory.getLogger(LoggingHandler.class);
 
+    private static Timer timer = new Timer();
+    private static HashMap<Long,List<String>> deleteCollections = new HashMap<>();  // Long is guildID
 
     private static boolean isSailMessage(CommandObject command) {
         return command.user.get().isBot();
@@ -142,9 +143,57 @@ public class LoggingHandler {
         }
         vars.add(3, content.toString());
         content = new StringBuffer(String.format(format, vars.toArray()));
-        sendLog(content.toString(), command, false, embed);
+        logAdd(command,content.toString(), embed);
+        //sendLog(content.toString(), command, false, embed);
     }
 
+    static class SendCollectedTask extends TimerTask {
+        private GuildObject guild;
+        private EmbedObject firstMessageEmbed;
+        SendCollectedTask(GuildObject guild, EmbedObject firstMessageEmbed){
+            this.guild = guild;
+            this.firstMessageEmbed = firstMessageEmbed;
+        }
+        @Override
+        public void run() {
+            List<String> list = deleteCollections.get(guild.longID);
+            if (list.size() < 1)
+                throw new DiscordException("This shouldn't happen.");
+            else if (list.size() < 2)
+                sendLog(list.get(0),guild,false,firstMessageEmbed);
+            else {
+                XEmbedBuilder embed = new XEmbedBuilder();
+                embed.withTitle("> Multiple deletes:");
+                embed.withColor(192,64,64);
+                if (firstMessageEmbed!=null)
+                    list.set(0,list.get(0) + "\n**[EMBED]**\n" + Utility.embedToString(firstMessageEmbed));
+                if (String.join(" ",list).length() > 5500) {    // embed limit
+                    list = list.stream().map(s -> s.substring(0,500)+"...").collect(Collectors.toList());
+                    if (String.join(" ",list).length() > 5500) {    // r e d u c c
+                        list = list.stream().map(s -> s.substring(0,200)+"...").collect(Collectors.toList());
+                    }
+                }
+                list.forEach(m -> embed.appendField("\u200b",m,false));   // Cheating
+                sendLog("",guild,false,embed.build());
+            }
+            deleteCollections.remove(guild.longID);
+            cancel();
+        }
+    }
+
+    private static void logAdd(CommandObject command, String message, EmbedObject embed){
+        long guildID = command.guild.longID;
+        if (deleteCollections.containsKey(guildID)) {    // already has list and TimerTask pending
+            if (embed != null) message = message + "\n**[EMBED]**\n" + Utility.embedToString(embed);
+            deleteCollections.get(guildID).add(message);
+        } else {
+            List<String> newList = new ArrayList<>();
+            newList.add(message);
+            deleteCollections.put(guildID, newList);
+            SendCollectedTask task = new SendCollectedTask(command.guild,embed);
+            timer.schedule(task,850);
+        }
+    }
 
     //global updates:
     //channel moved (Category changed), channel name updated.
