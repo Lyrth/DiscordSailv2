@@ -7,6 +7,7 @@ import com.github.vaerys.main.Utility;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.masterobjects.GuildObject;
 import com.github.vaerys.masterobjects.UserObject;
+import com.github.vaerys.objects.utils.DualVar;
 import com.github.vaerys.utilobjects.XEmbedBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ public class LoggingHandler {
     private final static Logger logger = LoggerFactory.getLogger(LoggingHandler.class);
 
     private static Timer timer = new Timer();
-    private static HashMap<Long,List<String>> deleteCollections = new HashMap<>();  // Long is guildID
+    private static HashMap<Long,List<DualVar<Long,String>>> deleteCollections = new HashMap<>();  // Long is guildID
 
     private static boolean isSailMessage(CommandObject command) {
         return command.user.get().isBot();
@@ -143,8 +144,7 @@ public class LoggingHandler {
         }
         vars.add(3, content.toString());
         content = new StringBuffer(String.format(format, vars.toArray()));
-        logAdd(command,content.toString(), embed);
-        //sendLog(content.toString(), command, false, embed);
+        logAdd(command,content.toString(),deletedMessage.getLongID(),embed);
     }
 
     static class SendCollectedTask extends TimerTask {
@@ -154,44 +154,79 @@ public class LoggingHandler {
             this.guild = guild;
             this.firstMessageEmbed = firstMessageEmbed;
         }
+        private void limitEmbed(List<DualVar<Long,String>> list){
+            int length = 0;
+            for (DualVar<Long,String> d : list) length += d.getVar2().length();
+            if (length > 5500) {
+                length = 0;
+                for (DualVar<Long,String> d : list) {
+                    d.setVar2(d.getVar2().substring(0,500) + ((d.getVar2().length()<501)?"":"..."));
+                    length += d.getVar2().length();
+                }
+                if (length > 5500){
+                    for (DualVar<Long,String> d : list)
+                        d.setVar2(d.getVar2().substring(0,200) + ((d.getVar2().length()<201)?"":"..."));
+                }
+            }
+        }
         @Override
         public void run() {
-            List<String> list = deleteCollections.get(guild.longID);
+
+            List<DualVar<Long,String>> list = deleteCollections.get(guild.longID);
+            deleteCollections.remove(guild.longID);
             if (list.size() < 1)
                 throw new DiscordException("This shouldn't happen.");
             else if (list.size() < 2)
-                sendLog(list.get(0),guild,false,firstMessageEmbed);
+                sendLog(list.get(0).getVar2(),guild,false,firstMessageEmbed);
             else {
-                XEmbedBuilder embed = new XEmbedBuilder();
-                embed.withTitle("> Multiple deletes:");
-                embed.withColor(192,64,64);
-                if (firstMessageEmbed!=null)
-                    list.set(0,list.get(0) + "\n**[EMBED]**\n" + Utility.embedToString(firstMessageEmbed));
-                if (String.join(" ",list).length() > 5500) {    // embed limit
-                    list = list.stream().map(s -> s.substring(0,500)+"...").collect(Collectors.toList());
-                    if (String.join(" ",list).length() > 5500) {    // r e d u c c
-                        list = list.stream().map(s -> s.substring(0,200)+"...").collect(Collectors.toList());
+                if (firstMessageEmbed != null)
+                    list.set(0, new DualVar<>(list.get(0).getVar1(),
+                            list.get(0).getVar2() + "\n**[EMBED]**\n" + Utility.embedToString(firstMessageEmbed)));
+                list.sort(Comparator.comparing(DualVar::getVar1));
+                if (list.size() < 26) {
+                    XEmbedBuilder embed = new XEmbedBuilder();
+                    embed.withTitle("> Multiple deletes:");
+                    embed.withColor(192, 64, 64);
+                    limitEmbed(list);
+                    list.forEach(m ->
+                            embed.appendField("\u200b", m.getVar2().isEmpty()?"null":m.getVar2(), false));
+                    sendLog("", guild, false, embed.build());
+                } else {    // more than 25
+                    int pos = 0;
+                    List<DualVar<Long,String>> sub = list.subList(0,25);
+                    while (sub.size() > 0) {
+                        XEmbedBuilder embed = new XEmbedBuilder();
+                        embed.withTitle(String.format("> Multiple deletes: (Page %d of %d)",
+                                (pos+1), (int) Math.ceil(list.size()/25.0) ));
+                        embed.withColor(192, 64, 64);
+                        limitEmbed(sub);
+                        sub.forEach(m ->
+                                embed.appendField("\u200b", m.getVar2().isEmpty()?"null":m.getVar2(), false));
+                        sendLog("", guild, false, embed.build());
+                        pos++;
+                        sub = list.subList(
+                                Math.min(25*pos,list.size()),
+                                Math.min(25*(pos+1),list.size()) );
                     }
                 }
-                list.forEach(m -> embed.appendField("\u200b",m,false));   // Cheating
-                sendLog("",guild,false,embed.build());
             }
-            deleteCollections.remove(guild.longID);
             cancel();
         }
     }
 
-    private static void logAdd(CommandObject command, String message, EmbedObject embed){
+    private static void logAdd(CommandObject command, String message, Long messageID, EmbedObject embed){
         long guildID = command.guild.longID;
+        if (message==null) throw new DiscordException("logAdd: Variable 'message' empty!");
+        if(messageID==null) throw new DiscordException("logAdd: Variable 'messageID' empty!");
         if (deleteCollections.containsKey(guildID)) {    // already has list and TimerTask pending
             if (embed != null) message = message + "\n**[EMBED]**\n" + Utility.embedToString(embed);
-            deleteCollections.get(guildID).add(message);
+            deleteCollections.get(guildID).add(new DualVar<>(messageID,message));
         } else {
-            List<String> newList = new ArrayList<>();
-            newList.add(message);
+            List<DualVar<Long,String>> newList = new ArrayList<>();
+            newList.add(new DualVar<>(messageID,message));
             deleteCollections.put(guildID, newList);
             SendCollectedTask task = new SendCollectedTask(command.guild,embed);
-            timer.schedule(task,850);
+            timer.schedule(task,750);
         }
     }
 
