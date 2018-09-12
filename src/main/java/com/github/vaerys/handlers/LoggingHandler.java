@@ -1,6 +1,7 @@
 package com.github.vaerys.handlers;
 
 import com.github.vaerys.enums.ChannelSetting;
+import com.github.vaerys.enums.LogType;
 import com.github.vaerys.main.Client;
 import com.github.vaerys.main.Globals;
 import com.github.vaerys.main.Utility;
@@ -183,31 +184,21 @@ public class LoggingHandler {
                     list.set(0, new DualVar<>(list.get(0).getVar1(),
                             list.get(0).getVar2() + "\n**[EMBED]**\n" + Utility.embedToString(firstMessageEmbed)));
                 list.sort(Comparator.comparing(DualVar::getVar1));
-                if (list.size() < 26) {
+                int pos = 0;
+                List<DualVar<Long,String>> sub = list.subList(0,Math.min(25,list.size()));
+                while (sub.size() > 0) {
                     XEmbedBuilder embed = new XEmbedBuilder();
-                    embed.withTitle("> Multiple deletes:");
-                    embed.withColor(192, 64, 64);
-                    limitEmbed(list);
-                    list.forEach(m ->
+                    embed.withTitle(String.format("> Multiple deletes: (Page %d of %d)",
+                            (pos+1), (int) Math.ceil(list.size()/25.0) ));
+                    embed.withColor(LogType.MSG_DELETE.color);
+                    limitEmbed(sub);
+                    sub.forEach(m ->
                             embed.appendField("\u200b", m.getVar2().isEmpty()?"null":m.getVar2(), false));
                     sendLog("", guild, false, embed.build());
-                } else {    // more than 25
-                    int pos = 0;
-                    List<DualVar<Long,String>> sub = list.subList(0,25);
-                    while (sub.size() > 0) {
-                        XEmbedBuilder embed = new XEmbedBuilder();
-                        embed.withTitle(String.format("> Multiple deletes: (Page %d of %d)",
-                                (pos+1), (int) Math.ceil(list.size()/25.0) ));
-                        embed.withColor(192, 64, 64);
-                        limitEmbed(sub);
-                        sub.forEach(m ->
-                                embed.appendField("\u200b", m.getVar2().isEmpty()?"null":m.getVar2(), false));
-                        sendLog("", guild, false, embed.build());
-                        pos++;
-                        sub = list.subList(
-                                Math.min(25*pos,list.size()),
-                                Math.min(25*(pos+1),list.size()) );
-                    }
+                    pos++;
+                    sub = list.subList(
+                            Math.min(25*pos,list.size()),
+                            Math.min(25*(pos+1),list.size()) );
                 }
             }
             cancel();
