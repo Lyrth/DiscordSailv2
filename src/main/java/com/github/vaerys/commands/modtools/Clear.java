@@ -53,12 +53,21 @@ public class Clear extends Command {
         IChannel channel = command.channel.get();
 
         Pattern pattern;
+        Long userID = null;
         int nn;
         if (rest == null || rest.isEmpty()) {  // no rules, only delete n messages
             pattern = null;
             nn = n + 4;  // pinned message
         } else {  // There are rules to check
             rest = Utility.escapeRegex(rest);
+            if (rest.matches(".*?(\\d{14,}).*")){
+                try {
+                    userID = Long.parseLong(rest.replaceFirst(".*?(\\d{14,}).*", "$1"));
+                } catch(NumberFormatException e) {
+                    userID = 1L;  // Clyde's ID, but in reality won't match anything. :P
+                }
+                rest = rest.replaceFirst("\\s*(<@)?!?\\d{14,}>?\\s*","");
+            }
             if (rest.length() > 1 && !rest.equals("--")) {
                 if (rest.startsWith("-")) rest = ".*?" + rest.substring(1);
                 if (rest.endsWith("-") && !rest.endsWith("\\u005C-")) rest = rest.substring(0,rest.length()-1) + ".*?";
@@ -86,6 +95,7 @@ public class Clear extends Command {
             for (IMessage msg : toScan)
                 if (messages.size() < n &&
                         msg.getLongID() != command.message.longID &&
+                        (userID == null || command.user.longID == userID) &&
                         (pattern == null || pattern.matcher(msg.getContent()).matches()) &&
                         !messages.contains(msg)) {
                     messages.add(msg);
@@ -151,14 +161,14 @@ public class Clear extends Command {
 
     @Override
     public String description(CommandObject command) {
-        return "Bulk deletes a number of recent messages, optionally deletes messages based on a simple pattern. " +
+        return "Bulk deletes a number of recent messages, optionally deletes messages based on a simple pattern and/or user specified. " +
                 "Excludes the message that called this command.\n" +
                 "Usage:\n" +
                 "`" + Globals.defaultPrefixCommand + "Clear 5` delete 5 recent messages.\n" +
                 "`" + Globals.defaultPrefixCommand + "Clear 3 Text-` delete 3 messages starting with \"Text\".\n" +
-                "`" + Globals.defaultPrefixCommand + "Clear 3 -Text` delete 3 messages ending with \"Text\".\n" +
                 "`" + Globals.defaultPrefixCommand + "Clear 3 -Text-` delete 3 messages containing \"Text\".\n" +
-                "`" + Globals.defaultPrefixCommand + "Clear 3 -Text\\-` delete 3 messages ending with \"Text-\".\n";
+                "`" + Globals.defaultPrefixCommand + "Clear 3 -Text\\-` delete 3 messages ending with \"Text-\".\n" +
+                "`" + Globals.defaultPrefixCommand + "Clear 2 @User Text-` delete 2 messages from @User starting with \"Text\".\n";
     }
 
     @Override
