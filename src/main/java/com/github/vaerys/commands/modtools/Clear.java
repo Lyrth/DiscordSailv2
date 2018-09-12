@@ -55,19 +55,19 @@ public class Clear extends Command {
         Pattern pattern;
         Long userID = null;
         int nn;
+        if (rest.matches(".*?(\\d{14,}).*")){
+            try {
+                userID = Long.parseLong(rest.replaceFirst(".*?(\\d{14,}).*", "$1"));
+            } catch(NumberFormatException e) {
+                userID = 1L;  // Clyde's ID, but in reality won't match anything. :P
+            }
+            rest = rest.replaceFirst("\\s*(<@)?!?\\d{14,}>?\\s*","");
+        }
         if (rest == null || rest.isEmpty()) {  // no rules, only delete n messages
             pattern = null;
             nn = n + 4;  // pinned message
         } else {  // There are rules to check
             rest = Utility.escapeRegex(rest);
-            if (rest.matches(".*?(\\d{14,}).*")){
-                try {
-                    userID = Long.parseLong(rest.replaceFirst(".*?(\\d{14,}).*", "$1"));
-                } catch(NumberFormatException e) {
-                    userID = 1L;  // Clyde's ID, but in reality won't match anything. :P
-                }
-                rest = rest.replaceFirst("\\s*(<@)?!?\\d{14,}>?\\s*","");
-            }
             if (rest.length() > 1 && !rest.equals("--")) {
                 if (rest.startsWith("-")) rest = ".*?" + rest.substring(1);
                 if (rest.endsWith("-") && !rest.endsWith("\\u005C-")) rest = rest.substring(0,rest.length()-1) + ".*?";
