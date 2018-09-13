@@ -95,7 +95,7 @@ public class Clear extends Command {
             for (IMessage msg : toScan) {
                 if (messages.size() < n &&
                         msg.getLongID() != command.message.longID &&
-                        (userID == null || command.user.longID == userID) &&
+                        (userID == null || msg.getAuthor().getLongID() == userID) &&
                         (pattern == null || pattern.matcher(msg.getContent()).matches()) &&
                         !messages.contains(msg)) {
                     messages.add(msg);
