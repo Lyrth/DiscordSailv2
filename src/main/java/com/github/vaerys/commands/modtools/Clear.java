@@ -55,7 +55,7 @@ public class Clear extends Command {
         Pattern pattern;
         Long userID = null;
         int nn;
-        if (rest.matches(".*?(\\d{14,}).*")){
+        if (!(rest == null || rest.isEmpty()) && rest.matches("^\\s*(<@)?!?(\\d{14,})>?.*")){
             try {
                 userID = Long.parseLong(rest.replaceFirst(".*?(\\d{14,}).*", "$1"));
             } catch(NumberFormatException e) {
@@ -92,7 +92,7 @@ public class Clear extends Command {
         int deleted = 0;
         while (messages.size() < n){
             if (toScan.size() < nn) endOfChannel = true;
-            for (IMessage msg : toScan)
+            for (IMessage msg : toScan) {
                 if (messages.size() < n &&
                         msg.getLongID() != command.message.longID &&
                         (userID == null || command.user.longID == userID) &&
@@ -100,9 +100,10 @@ public class Clear extends Command {
                         !messages.contains(msg)) {
                     messages.add(msg);
                     deleted++;
-                    if (current - msg.getTimestamp().getEpochSecond() > 1209600)
-                        reachedOld = true;
                 }
+                if (current - msg.getTimestamp().getEpochSecond() > 1209600)
+                    reachedOld = true;
+            }
             lastID = toScan.get(toScan.size()-1).getLongID();
             if (messages.size() < n && !endOfChannel && !reachedOld) {
                 toScan = new ArrayList<>(
