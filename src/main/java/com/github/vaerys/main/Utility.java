@@ -107,6 +107,7 @@ public class Utility {
 
     //Time Utils
     public static String formatTime(long timeSeconds, boolean readable) {
+        if (timeSeconds == 0) return "0 seconds";
         long days = 0;
         if (readable) {
             days = TimeUnit.SECONDS.toDays(timeSeconds);
@@ -283,11 +284,12 @@ public class Utility {
     }
 
     public static void sendGlobalAdminLogging(Command command, String args, CommandObject commandObject) {
+        StringHandler message = new StringHandler("***GLOBAL LOGGING***\n> **@%s** Has Used Command `%s`",
+                commandObject.user.username, command.names[0]);
         for (GuildObject c : Globals.getGuilds()) {
-            StringHandler message = new StringHandler("***GLOBAL LOGGING***\n> **@")
-                    .append(commandObject.user.username)
-                    .append("** Has Used Command `")
-                    .append(command.names[0]).append("`");
+            if (!c.config.moduleLogging) continue;
+            if (!c.config.adminLogging) continue;
+
             List<IChannel> adminlog = c.getChannelsByType(ChannelSetting.ADMIN_LOG);
             List<IChannel> serverLog = c.getChannelsByType(ChannelSetting.SERVER_LOG);
 
@@ -368,10 +370,18 @@ public class Utility {
         return from;
     }
 
+    public static String escapeFun(String from) {
+
+        from = from.replace("`","\\`");
+        from = from.replace("*","\\*");
+        from = from.replace("_","\\_");
+        return from.replace("~","\\~");
+    }
+
     public static String replaceFun(String from, String fun, boolean[] exit) {
         String noFun = StringUtils.substringBetween(from, fun, fun);
         if (noFun != null) {
-            from = from.replace(escapeRegex(fun + noFun + fun), noFun);
+            from = from.replace(escapeRegex(fun), "");
             exit[0] = true;
         }
         return from;
@@ -456,9 +466,11 @@ public class Utility {
      * @param guild the guild the action should take place
      * @return if the higher user is above the lower user
      */
-    public static boolean testUserHierarchy(IUser higherUser, IUser lowerUser, IGuild guild) {
+    public static boolean testUserHierarchy(IUser higherUser, IUser lowerUser, IGuild guild, boolean sameLevel) {
         List<IRole> lowerRoles = lowerUser.getRolesForGuild(guild);
         List<IRole> higherRoles = higherUser.getRolesForGuild(guild);
+        // higher user is guild owner, automatically has highest role:
+        if (guild.getOwner().equals(higherUser)) return true;
         IRole topRole = null;
         int topRolePos = 0;
         for (IRole role : higherRoles) {
@@ -473,11 +485,21 @@ public class Utility {
             }
         }
         for (IRole role : lowerRoles) {
-            if (role.getPosition() > topRolePos) {
-                return false;
+            if (sameLevel) {
+                if (role.getPosition() > topRolePos) {
+                    return false;
+                }
+            } else {
+                if (role.getPosition() >= topRolePos) {
+                    return false;
+                }
             }
         }
         return true;
+    }
+
+    public static boolean testUserHierarchy(IUser higherUser, IUser lowerUser, IGuild guild) {
+        return testUserHierarchy(higherUser, lowerUser, guild, true);
     }
 
     /***
@@ -706,6 +728,7 @@ public class Utility {
 
     public static UserObject getUser(CommandObject command, String args, boolean doContains, boolean hasProfile) {
         if (args == null || args.isEmpty()) return null;
+
         try {
             long userId = Long.parseUnsignedLong(args);
             IUser user = command.client.fetchUser(userId);
@@ -713,8 +736,13 @@ public class Utility {
                 return UserObject.getNewUserObject(userId, command.guild);
             }
         } catch (NumberFormatException e) {
-            //skip
+            List<IUser> mention = command.message.getMentions();
+            if (mention.size() > 0) {
+                Collections.reverse(mention);
+                return new UserObject(mention.get(0), command.guild);
+            }
         }
+
 
         IUser user = null;
         IUser conUser = null;
@@ -760,13 +788,6 @@ public class Utility {
             }
         }
         UserObject userObject = null;
-        if (user == null) {
-            List<IUser> mention = command.message.getMentions();
-            if (mention.size() > 0) {
-                Collections.reverse(mention);
-                user = mention.get(0);
-            }
-        }
         if (user == null && doContains) {
             user = conUser;
         }

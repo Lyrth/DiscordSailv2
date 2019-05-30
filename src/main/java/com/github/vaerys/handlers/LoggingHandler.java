@@ -40,7 +40,7 @@ public class LoggingHandler {
     private static HashMap<Long,List<DualVar<Long,String>>> deleteCollections = new HashMap<>();  // Long is guildID
 
     private static boolean isSailMessage(CommandObject command) {
-        return command.user.get().isBot();
+        return command.user.longID == command.client.bot.longID;
     }
 
     private static void sendLog(String message, CommandObject command, boolean isAdmin, EmbedObject... object) {
@@ -73,6 +73,7 @@ public class LoggingHandler {
         if (chars200.equals("`Working...`") && isSailMessage(command)) return false;
         if (chars200.equals("`Loading...`") && isSailMessage(command)) return false;
         if (isSailMessage(command) && chars200.matches(pinRegex)) return false;
+        if (isSailMessage(command) && command.message.get().getEmbeds().size() != 0) return false;
         if (serverLog != null && serverLog.equals(command.channel.get()) && isSailMessage(command)) return false;
         if (adminLog != null && adminLog.equals(command.channel.get()) && isSailMessage(command)) return false;
         if (info != null && info.equals(command.channel.get()) && isSailMessage(command)) return false;
@@ -397,8 +398,8 @@ public class LoggingHandler {
             charLimit = 1800;
         }
 
-        String oldContent = oldMessage.getContent() == null ? "" : oldMessage.getContent();
-        String newContent = newMessage.getContent() == null ? "" : newMessage.getContent();
+        String oldContent = oldMessage.getContent() == null ? "" : Utility.unFormatMentions(oldMessage);
+        String newContent = newMessage.getContent() == null ? "" : Utility.unFormatMentions(newMessage);
         oldContent = oldContent.length() > charLimit ? oldContent.substring(0, charLimit).concat("...") : oldContent;
         newContent = newContent.length() > charLimit ? newContent.substring(0, charLimit).concat("...") : newContent;
         StringBuilder extraContent = new StringBuilder();
@@ -489,8 +490,8 @@ public class LoggingHandler {
     public static void doBanLog(UserBanEvent event) {
         IGuild guild = event.getGuild();
         GuildObject guildObject = Globals.getGuildContent(guild.getLongID());
-        if (!guildObject.config.banLogging || !GuildHandler.testForPerms(Client.getClient().getOurUser(), guild, Permissions.VIEW_AUDIT_LOG))
-            return;
+        if (!guildObject.config.moduleLogging || !guildObject.config.banLogging) return;
+        if (!GuildHandler.testForPerms(Client.getClient().getOurUser(), guild, Permissions.VIEW_AUDIT_LOG)) return;
         StringHandler output = new StringHandler("> **@%s#%s** was banned");
         output.setContent(String.format(output.toString(), event.getUser().getName(), event.getUser().getDiscriminator()));
 

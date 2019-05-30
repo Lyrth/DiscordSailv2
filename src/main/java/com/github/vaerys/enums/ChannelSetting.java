@@ -1,11 +1,10 @@
 package com.github.vaerys.enums;
 
-import com.github.vaerys.main.Main;
-import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.commands.help.Report;
 import com.github.vaerys.commands.help.SilentReport;
 import com.github.vaerys.handlers.GuildHandler;
 import com.github.vaerys.main.Utility;
+import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.masterobjects.GuildObject;
 import com.github.vaerys.objects.adminlevel.ChannelSettingObject;
 import com.github.vaerys.utilobjects.XEmbedBuilder;
@@ -92,15 +91,11 @@ public enum ChannelSetting {
      */
     XP_DENIED("XpDenied", true, "When this setting is on a channel no pixels will be gained in the  channel."),
 
-    /**
-     * Where all the general type logging will be sent.
-     */
-    FROM_DM("DirectMessages", false, "The command can only be ran in DMs."),
+    PROFILES("Profiles", true, "Channel For Profile related Commands."),
 
-    /**
-     * Channel For Profile related Commands.
-     */
-    PROFILES("Profiles", false, "Channel For Profile related Commands."),
+    IGNORE_SPAM("IgnoreSpam", true, "When Enabled Spam Type messages will be ignored."),
+
+    MUTE_APPEALS("MuteAppeals", true, "Stops muted people from using commands in the channel."),
 
     // "Types"
 
@@ -139,16 +134,11 @@ public enum ChannelSetting {
      */
     SERVER_LOG("ServerLog", false, "Where all the general type logging will be sent."),
 
+    JOIN_CHANNEL("JoinChannel", false, "Where Custom join messages will be sent."),
 
-    /**
-     * When Enabled Spam Type messages will be ignored.
-     */
-    IGNORE_SPAM("IgnoreSpam", true, "When Enabled Spam Type messages will be ignored."),
+    // direct messages should not be accessible
 
-    /**
-     * Where Custom join messages will be sent.
-     */
-    JOIN_CHANNEL("JoinChannel", true, "Where Custom join messages will be sent.");
+    FROM_DM("DirectMessages", false, "The command can only be ran in DMs.");
 
 
     protected String name;
@@ -171,6 +161,7 @@ public enum ChannelSetting {
     }
 
     public static ChannelSetting get(String type) {
+        if (type.equalsIgnoreCase(FROM_DM.toString())) return null;
         for (ChannelSetting c : values()) {
             if (c.toString().equalsIgnoreCase(type)) {
                 return c;
@@ -211,7 +202,6 @@ public enum ChannelSetting {
         } else {
             return String.format(desc, new Report().getCommand(command), new SilentReport().getCommand(command));
         }
-
     }
 
     /**
@@ -268,65 +258,32 @@ public enum ChannelSetting {
         return builder;
     }
 
-    public String toggleSetting(GuildObject guild, long channelID) {
-        List<ChannelSettingObject> objects = guild.channelData.getChannelSettings();
-        boolean isFound = false;
-
-        String modifier = isSetting ? "Setting" : "Type";
-
-        ChannelSettingObject channel = null;
-
-
-        for (ChannelSettingObject s : objects) {
-            if (s.getType() == this) {
-                isFound = true;
-                channel = s;
-            }
-        }
-        if (!isFound) {
-            channel = new ChannelSettingObject(name);
-            objects.add(channel);
-        }
-
-        String error = "> An error occurred Trying to toggle the Channel " + modifier + ".";
-
-        //this should never run.
-        if (channel == null) return error;
-
+    public String toggleSetting(CommandObject command) {
+        ChannelSettingObject settingObject = command.guild.channelData.getChannelSetting(this);
+        if (settingObject == null) settingObject = command.guild.channelData.initSetting(this);
+        String mention = command.channel.mention;
+        long channelID = command.channel.longID;
         if (isSetting) {
-            if (channel.getChannelIDs().isEmpty() || !channel.getChannelIDs().contains(channelID)) {
-                channel.getChannelIDs().add(channelID);
-                String channelMention = guild.getChannelByID(channelID)!=null ?    // cache workaround
-                        guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
-                return "> " + channelMention + ". Channel setting: **" + name + "** added.";
-            } else {
-                for (int i = 0; i < channel.getChannelIDs().size(); i++) {
-                    if (channelID == channel.getChannelIDs().get(i)) {
-                        channel.getChannelIDs().remove(i);
-                        String channelMention = guild.getChannelByID(channelID)!=null ?
-                                guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
-                        return "> " + channelMention + ". Channel setting: **" + name + "** removed.";
-                    }
-                }
+            String mode = "removed";
+            if (!settingObject.getChannelIDs().removeIf(l -> l == channelID)) {
+                settingObject.getChannelIDs().add(channelID);
+                mode = "added";
             }
+            return String.format("> %s, Channel setting: **%s** %s.", mention, name, mode);
         } else {
-            if (channel.getChannelIDs().isEmpty() || !channel.getChannelIDs().get(0).equals(channelID)) {
-                if (channel.getChannelIDs().isEmpty()) {
-                    channel.getChannelIDs().add(channelID);
-                } else {
-                    channel.getChannelIDs().set(0, channelID);
-                }
-                String channelMention = guild.getChannelByID(channelID)!=null ?
-                        guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
-                return "> " + channelMention + " is now the Server's **" + name + "** channel.";
+            boolean isAdding = true;
+            if (settingObject.getChannelIDs().isEmpty()) {
+                settingObject.getChannelIDs().add(channelID);
             } else {
-                channel.getChannelIDs().remove(0);
-                String channelMention = guild.getChannelByID(channelID)!=null ?
-                        guild.getChannelByID(channelID).mention() : "<#"+channelID+">";
-                return "> " + channelMention + " is no longer the Server's **" + name + "** channel.";
+                if (settingObject.getChannelIDs().get(0) == channelID) {
+                    settingObject.getChannelIDs().clear();
+                    isAdding = false;
+                } else {
+                    settingObject.getChannelIDs().set(0, channelID);
+                }
             }
+            return String.format("> %s is %s the Server's **%s** channel.", mention, isAdding ? "is now" : "is no longer", name);
         }
-        return error;
     }
 }
 

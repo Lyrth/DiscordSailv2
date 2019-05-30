@@ -49,7 +49,7 @@ public class Globals {
     public static String playing = null;
     public static long queueChannelID = -1;
     public static int argsMax = 0;
-    public static int maxWarnings = 0;
+    public static int maxWarnings = 3;
     public static int avgMessagesPerDay = 20;
     public static boolean isReady = false;
     public static String version;
@@ -77,6 +77,7 @@ public class Globals {
     public static long lastRateLimitReset = System.currentTimeMillis();
     private static IUser creator = null;
     private static List<IUser> contributors = new LinkedList<>();
+    private static final Random globalRandom = new Random();
 
     public static void initConfig(IDiscordClient ourClient, Config config, GlobalData newGlobalData) {
         if (newGlobalData != null) {
@@ -406,5 +407,9 @@ public class Globals {
             contributors.add(client.fetchUser(222041304761237505L));
             contributors.add(client.fetchUser(368727799189733376L));
         });
+    }
+
+    public static Random getGlobalRandom() {
+        return globalRandom;
     }
 }

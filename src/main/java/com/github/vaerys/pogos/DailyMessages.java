@@ -22,7 +22,7 @@ public class DailyMessages extends GlobalFile {
 
     public long newDailyMsgUID() {
         long result;
-        Random random = new Random();
+        Random random = Globals.getGlobalRandom();
         List<Long> uIDs = dailyMessages.stream().filter(dailyMessage ->
                 dailyMessage.getUID() != -1).map(dailyMessage ->
                 dailyMessage.getUID()).collect(Collectors.toList());
@@ -83,5 +83,12 @@ public class DailyMessages extends GlobalFile {
             }
         }
         return object;
+    }
+
+    public QueueObject getRequestItem(long longID) {
+        for (QueueObject q : queuedRequests){
+            if (q.getMessageId() == longID) return q;
+        }
+        return null;
     }
 }

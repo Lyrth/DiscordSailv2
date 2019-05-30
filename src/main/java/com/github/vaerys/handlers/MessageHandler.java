@@ -1,5 +1,6 @@
 package com.github.vaerys.handlers;
 
+import com.github.vaerys.enums.ChannelSetting;
 import com.github.vaerys.main.Utility;
 import com.github.vaerys.masterobjects.CommandObject;
 import com.github.vaerys.templates.Command;
@@ -7,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.RequestBuffer;
 
@@ -33,10 +35,14 @@ public class MessageHandler {
             if (SpamHandler.commandBlacklisting(command)) return;
             if (SpamHandler.rateLimiting(command)) return;
             if (SpamHandler.catchWalls(command)) return;
+            if (checkMuteAppeals(command)) return;
             // check for role mentions:
             if (!GuildHandler.testForPerms(command, command.channel.get(), Permissions.MENTION_EVERYONE)) {
                 // sanitize @everyone and @here mentions.
                 args = args.replaceAll("(?i)@(everyone|here)", "REDACTED");
+                for (IRole r : command.message.get().getRoleMentions()) {
+                    args = args.replaceAll(r.mention(), r.getName());
+                }
             }
             PixelHandler.grantXP(command);
             if (command.guild.config.artPinning) {
@@ -66,6 +72,16 @@ public class MessageHandler {
         }
     }
 
+    private boolean checkMuteAppeals(CommandObject command) {
+        if (!command.guild.config.moduleModMute) return false;
+        IRole muted = command.guild.getMutedRole();
+        if (muted == null) return false;
+        if (!command.guild.getChannelsByType(ChannelSetting.MUTE_APPEALS).contains(command.channel.get())) return false;
+        if (GuildHandler.canBypass(command)) return false;
+        if (command.user.roles.contains(muted)) return true;
+        return false;
+    }
+
 //    public static boolean isActive(boolean isPrivate, CommandObject command) {
 //        if (!isPrivate) return false;
 //        for (GuildObject g : Globals.getGuilds()) {
@@ -79,6 +95,7 @@ public class MessageHandler {
 //    }
 
     protected static void handleLogging(CommandObject commandObject, Command command, String args) {
+        if (!commandObject.guild.config.moduleLogging) return;
         if (command.doAdminLogging && !commandObject.guild.config.adminLogging) {
             return;
         } else if (!command.doAdminLogging && !commandObject.guild.config.generalLogging) {
