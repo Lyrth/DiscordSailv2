@@ -10,13 +10,13 @@ public class SplitFirstObject {
     String rest = null;
 
     public SplitFirstObject(String from) {
-        String[] splitFrom = from.split(" ");
+        String[] splitFrom = from.split("\\s+");
         if (splitFrom.length != 0 || splitFrom != null) {
             firstWord = splitFrom[0];
             if (splitFrom.length == 1) {
                 return;
             } else {
-                rest = from.replaceFirst(Pattern.quote(firstWord + " "), "");
+                rest = from.replaceFirst(Pattern.quote(firstWord) + "\\s+", "");
             }
         }
     }
