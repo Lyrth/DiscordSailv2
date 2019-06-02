@@ -144,4 +144,17 @@ public class CharEditModes {
         c.update(c.getName(), cosmetics);
         return "> Character Roles Updated.";
     }
+
+    public static String weapon(String args, CharacterObject character) {
+        long maxChars = 20;
+        if (args.length() > maxChars) {
+            long overDraw = args.length() - maxChars;
+            return "> Weapon description must be under " + maxChars + " characters. " + getOverDraw(overDraw);
+        } else if (args.contains("\n")) {
+            return "> Character weapon cannot contain newlines.";
+        } else {
+            character.setWeapon(args);
+            return "> Weapon Updated";
+        }
+    }
 }

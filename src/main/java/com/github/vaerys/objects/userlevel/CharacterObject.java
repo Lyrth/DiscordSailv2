@@ -7,6 +7,7 @@ import sx.blah.discord.handle.obj.IRole;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,8 @@ public class CharacterObject {
     String shortBio = ""; //limit to 140 chars.
     String avatarURL = "";
     String longBioURL = ""; //URL link linking to Character Bios
+    String weapon = "";
+    HashMap<String,Double> currencies = new HashMap<>();
     private String weight = null;
     private String height = null;
 
@@ -128,5 +131,33 @@ public class CharacterObject {
 
     public String getHeight() {
         return height;
+    }
+
+    public String getWeapon() {
+        return weapon;
+    }
+
+    public void setWeapon(String weapon) {
+        this.weapon = weapon;
+    }
+
+    public void modifyCurrency(String currency, double amount){
+        if (currencies.containsKey(currency)){
+            currencies.compute(currency,(cur,val) -> (val == null) ? amount : val+amount);
+        } else {
+            currencies.put(currency,amount);
+        }
+    }
+
+    public void setCurrency(String currency, double amount){
+        if (amount == 0){
+            currencies.remove(currency);
+        } else {
+            currencies.put(currency, amount);
+        }
+    }
+
+    public String getCurrencies(){
+
     }
 }

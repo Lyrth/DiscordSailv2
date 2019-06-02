@@ -59,6 +59,8 @@ public class EditChar extends Command {
                             return CharEditModes.name(rest, c);
                         case "roles":
                             return CharEditModes.roles(command, c);
+                        case "weapon":
+                            return CharEditModes.weapon(rest, c);
                         default:
                             return "> Mode not Valid.";
                     }
