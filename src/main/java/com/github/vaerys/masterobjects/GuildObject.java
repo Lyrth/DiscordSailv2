@@ -38,6 +38,7 @@ public class GuildObject {
     public CustomCommands customCommands;
     public Servers servers;
     public Characters characters;
+    public Currencies currencies;
     public Competition competition;
     public GuildUsers users;
     public ChannelData channelData;
@@ -60,6 +61,7 @@ public class GuildObject {
         this.customCommands = FileFactory.create(longID, FilePaths.CUSTOM_COMMANDS, CustomCommands.class);
         this.servers = FileFactory.create(longID, FilePaths.SERVERS, Servers.class);
         this.characters = FileFactory.create(longID, FilePaths.CHARACTERS, Characters.class);
+        this.currencies = FileFactory.create(longID, FilePaths.CURRENCIES, Currencies.class);
         this.competition = FileFactory.create(longID, FilePaths.COMPETITION, Competition.class);
         this.users = FileFactory.create(longID, FilePaths.GUILD_USERS, GuildUsers.class);
         this.channelData = FileFactory.create(longID, FilePaths.CHANNEL_DATA, ChannelData.class);
@@ -70,6 +72,7 @@ public class GuildObject {
             add(customCommands);
             add(servers);
             add(characters);
+            add(currencies);
             add(competition);
             add(users);
             add(channelData);
@@ -89,6 +92,7 @@ public class GuildObject {
         this.customCommands = new CustomCommands();
         this.servers = new Servers();
         this.characters = new Characters();
+        this.currencies = new Currencies();
         this.competition = new Competition();
         this.users = new GuildUsers();
         this.channelData = new ChannelData();

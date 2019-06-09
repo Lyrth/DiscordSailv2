@@ -50,7 +50,7 @@ public class SelectChar extends Command {
 
     @Override
     protected String[] names() {
-        return new String[]{"Char", "SelChar", "SelectChar"};
+        return new String[]{"SelChar", "SelectChar", "CharSelect"};
     }
 
     @Override

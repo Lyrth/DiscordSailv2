@@ -5,6 +5,7 @@ public enum FilePaths {
     CUSTOM_COMMANDS("Custom_Commands.json"),
     SERVERS("Servers.json"),
     CHARACTERS("Characters.json"),
+    CURRENCIES("Currencies.json"),
     COMPETITION("Competition.json"),
     GUILD_USERS("Guild_Users.json"),
     CHANNEL_DATA("Channel_Data.json"),

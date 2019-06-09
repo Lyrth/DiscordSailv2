@@ -157,4 +157,20 @@ public class CharEditModes {
             return "> Weapon Updated";
         }
     }
+
+    public static String stat(String stat, String args, CharacterObject character) {
+        try {
+            character.getStat(stat);
+            int val = Integer.parseInt(args.trim());
+            if (val < 0) throw new NumberFormatException();
+            return "> " + character.setStat(stat,val) + " Updated";
+        } catch (IllegalArgumentException e){
+            if (e.toString().contains("Stat"))
+                return "> Mode not valid.";
+            else if (e instanceof NumberFormatException)
+                return "> Value should be a positive integer.";
+            else
+                return "> Some error. (This should not happen.)";
+        }
+    }
 }

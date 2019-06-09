@@ -218,6 +218,13 @@ public class CommandList {
         add(new DeleteAdminCC());
         add(new ResetTries());
         add(new AdminCCInfo());
+
+        // new commands
+        add(new Credit());
+        add(new Currency());
+        add(new CharCredits());
+        add(new CharStats());
+
     }};
 
     private static final List<Command> creatorCommands = new ArrayList<Command>() {{

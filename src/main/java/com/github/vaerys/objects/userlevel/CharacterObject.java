@@ -33,15 +33,19 @@ public class CharacterObject {
     String avatarURL = "";
     String longBioURL = ""; //URL link linking to Character Bios
     String weapon = "";
-    HashMap<String,Double> currencies = new HashMap<>();
+    HashMap<String,Long> currencies;
     private String weight = null;
     private String height = null;
+
+    //dungeon stats
+    CharStats stats = new CharStats(0,0,0,0,0,0, 10);
 
     public CharacterObject(String name, long userID, String nickname, List<Long> roleIDs) {
         this.name = name;
         this.userID = userID;
         this.nickname = nickname;
         this.roleIDs = (ArrayList<Long>) roleIDs;
+        currencies = new HashMap<>();
     }
 
     public String getLongBioURL() {
@@ -141,7 +145,9 @@ public class CharacterObject {
         this.weapon = weapon;
     }
 
-    public void modifyCurrency(String currency, double amount){
+    public void modifyCredits(String currency, long amount){  // + / -
+        if (currencies == null)
+            currencies = new HashMap<>();
         if (currencies.containsKey(currency)){
             currencies.compute(currency,(cur,val) -> (val == null) ? amount : val+amount);
         } else {
@@ -149,7 +155,9 @@ public class CharacterObject {
         }
     }
 
-    public void setCurrency(String currency, double amount){
+    public void setCredits(String currency, long amount){
+        if (currencies == null)
+            currencies = new HashMap<>();
         if (amount == 0){
             currencies.remove(currency);
         } else {
@@ -157,7 +165,47 @@ public class CharacterObject {
         }
     }
 
-    public String getCurrencies(){
+    public long getCredits(String currency){
+        if (currencies == null){
+            currencies = new HashMap<>();
+            return 0L;
+        }
+        return currencies.getOrDefault(currency,0L);
+    }
 
+    public String getCharCurrencies(GuildObject guild){
+        if (currencies == null)
+            currencies = new HashMap<>();
+        StringBuilder str = new StringBuilder();
+        currencies.forEach((id,val) -> {
+            try {
+                str.append("**" + guild.currencies.getCurrency(id).getName() + "**: ")
+                        .append(guild.currencies.getCurrency(id).getRealValue(val))
+                        .append("\n")
+                        .append(guild.currencies.getCurrency(id).printAliases(guild.currencies.getCurrency(id).getRealValue(val)))
+                        .append("\n\n");
+            } catch(NullPointerException ignored){}
+        });
+        return str.toString();
+    }
+
+    public int getStat(String stat){
+        if (stats == null) stats = new CharStats(0,0,0,0,0,0, 10);
+        return stats.getStat(stat);
+    }
+
+    public String setStat(String stat, int value){
+        if (stats == null) stats = new CharStats(0,0,0,0,0,0, 10);
+        return stats.setStat(stat,value);
+    }
+
+    public String printStats(){
+        if (stats == null) stats = new CharStats(0,0,0,0,0,0, 10);
+        return stats.printStats();
+    }
+
+    public String printStatsShort(){
+        if (stats == null) stats = new CharStats(0,0,0,0,0,0, 10);
+        return stats.printStatsShort();
     }
 }

@@ -62,7 +62,7 @@ public class EditChar extends Command {
                         case "weapon":
                             return CharEditModes.weapon(rest, c);
                         default:
-                            return "> Mode not Valid.";
+                            return CharEditModes.stat(mode.getFirstWord().toLowerCase(),rest,c);
                     }
                 } else {
                     return command.user.notAllowed;

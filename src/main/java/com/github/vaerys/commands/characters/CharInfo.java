@@ -88,7 +88,7 @@ public class CharInfo extends Command {
 
     @Override
     protected String[] names() {
-        return new String[]{"CharInfo", "InfoChar"};
+        return new String[]{"Char", "CharInfo", "InfoChar"};
     }
 
     @Override
