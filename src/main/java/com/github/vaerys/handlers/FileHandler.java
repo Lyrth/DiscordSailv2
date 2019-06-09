@@ -98,10 +98,10 @@ public class FileHandler {
     /**
      * Reads from a .Json File using path "file" and returns a POGO based on "objClass".
      */
-    public static Object readFromJson(String file, Class<?> objClass) {
+    public static <T> T readFromJson(String file, Class<T> objClass) {
         Gson gson = new Gson();
         try (Reader reader = new InputStreamReader(new FileInputStream(new File(file)), StandardCharsets.UTF_8)) {
-            Object newObject = gson.fromJson(reader, objClass);
+            T newObject = gson.fromJson(reader, objClass);
             logger.trace("Reading Data from Json File: " + file + " applying to Object: " + objClass.getName());
             reader.close();
             return newObject;
@@ -118,7 +118,7 @@ public class FileHandler {
     /**
      * saves data from POGO of type "object" using path "file".
      */
-    public static void writeToJson(String file, Object object) {
+    public static <T> void writeToJson(String file, T object) {
         if (object == null) return;
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
