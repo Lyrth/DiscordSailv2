@@ -69,7 +69,10 @@ public enum SAILType {
     BAN_LOGGING("BanLogging"),
     KICK_LOGGING("KickLogging"),
     DUNGEON_CHARS("DungeonChars"),
-    MUTE_REMOVES_ROLES("MuteRemovesRoles");
+    MUTE_REMOVES_ROLES("MuteRemovesRoles"),
+
+    CURRENCY_REMAINDER("CurrencyRemainder"),
+    ;
 
     private String name;
 

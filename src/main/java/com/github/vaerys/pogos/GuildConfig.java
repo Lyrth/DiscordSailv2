@@ -72,6 +72,7 @@ public class GuildConfig extends GlobalFile {
     public boolean compVoting = false;
     //--Other
     public boolean dungeonChars = false;
+    public boolean currencyRemainder = false;
     //modules
     public boolean moduleServers = false;
     public boolean moduleChars = false;

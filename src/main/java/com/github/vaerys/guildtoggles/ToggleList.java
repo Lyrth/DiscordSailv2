@@ -55,6 +55,7 @@ public class ToggleList {
         add(new KickLogging());
         add(new BanLogging());
         add(new MuteRemovesRoles());
+        add(new CurrencyRemainder());
 //        add(new DungeonChars());
     }};
 

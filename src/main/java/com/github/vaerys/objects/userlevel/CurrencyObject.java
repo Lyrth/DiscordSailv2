@@ -1,11 +1,11 @@
 package com.github.vaerys.objects.userlevel;
 
+import com.github.vaerys.masterobjects.GuildObject;
 import com.sun.istack.internal.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class CurrencyObject {
 
@@ -83,12 +83,24 @@ public class CurrencyObject {
         return aliases;
     }
 
-    public String printAliases(double baseVal){
+    public String printAliases(double baseVal, GuildObject guild){
         StringBuilder str = new StringBuilder();
-        aliases.forEach((id,alias) -> {
-            if (getBaseAsAlias(baseVal,id) > 0.0999d)
-                str.append(" =   ").append(getBaseAsAlias(baseVal, id)).append(" ").append(alias.name).append("\n");
-        });
+        AtomicReference<Double> remainder = new AtomicReference<>(baseVal);
+        aliases.values()
+                .stream()
+                .sorted(Comparator.comparing(a->a.id))
+                .sorted(Comparator.<AliasCurrency>comparingDouble(a->a.factor).reversed())
+                .forEachOrdered(alias -> {
+                    if (getBaseAsAlias(baseVal,alias.id) > 0.0999d) {
+                        if (guild.config.currencyRemainder){
+                            if ((int)remainder.get().doubleValue()/(int)alias.factor == 0) return;
+                            str.append(" |   ").append((int)remainder.get().doubleValue()/(int)alias.factor).append(" ").append(alias.name).append("\n");
+                            remainder.set(remainder.get() % alias.factor);
+                        } else {
+                            str.append(" =   ").append(getBaseAsAlias(baseVal, alias.id)).append(" ").append(alias.name).append("\n");
+                        }
+                    }
+                });
         return str.toString();
     }
 

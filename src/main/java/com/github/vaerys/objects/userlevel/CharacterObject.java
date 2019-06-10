@@ -182,7 +182,7 @@ public class CharacterObject {
                 str.append("**" + guild.currencies.getCurrency(id).getName() + "**: ")
                         .append(guild.currencies.getCurrency(id).getRealValue(val))
                         .append("\n")
-                        .append(guild.currencies.getCurrency(id).printAliases(guild.currencies.getCurrency(id).getRealValue(val)))
+                        .append(guild.currencies.getCurrency(id).printAliases(guild.currencies.getCurrency(id).getRealValue(val),guild))
                         .append("\n\n");
             } catch(NullPointerException ignored){}
         });
