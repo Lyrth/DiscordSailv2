@@ -93,8 +93,8 @@ public class CurrencyObject {
                 .forEachOrdered(alias -> {
                     if (getBaseAsAlias(baseVal,alias.id) > 0.0999d) {
                         if (guild.config.currencyRemainder){
-                            if ((int)remainder.get().doubleValue()/(int)alias.factor == 0) return;
-                            str.append(" |   ").append((int)remainder.get().doubleValue()/(int)alias.factor).append(" ").append(alias.name).append("\n");
+                            if ((int)(remainder.get()/alias.factor) == 0) return;
+                            str.append(" |   ").append((int)(remainder.get()/alias.factor)).append(" ").append(alias.name).append("\n");
                             remainder.set(remainder.get() % alias.factor);
                         } else {
                             str.append(" =   ").append(getBaseAsAlias(baseVal, alias.id)).append(" ").append(alias.name).append("\n");
