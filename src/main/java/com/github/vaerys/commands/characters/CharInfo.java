@@ -51,7 +51,7 @@ public class CharInfo extends Command {
                 StringBuilder description = new StringBuilder();
                 description.append("**Age:** " + object.getAge());
                 description.append("\n**Gender:** " + object.getGender());
-                description.append((object.getWeapon()==null ? "" : "\n**Weapon:** " + object.getWeapon()));
+                description.append((object.getWeapon()==null || object.getWeapon().isEmpty() ? "" : "\n**Weapon:** " + object.getWeapon()));
                 if (object.getHeight() != null || object.getWeight() != null) {
                     description.append("\n");
                     if (object.getHeight() != null) {
